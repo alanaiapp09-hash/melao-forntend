@@ -47,7 +47,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;backgroun
   <div class="footer">El Melao de Inés · QuickOrder</div>
 </div>
 <script>
-const BASE='https://order.elmelaodeines.com/';
+const BASE=window.location.origin+'/';
 const BACKEND='wss://melao-backend-production.up.railway.app';
 ['waiter','kitchen','barbacoa','bar1','bar2','cash'].forEach(r=>{
   const el=document.getElementById('l-'+r);
