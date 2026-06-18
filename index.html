@@ -4,55 +4,318 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>QuickOrder · El Melao de Inés</title>
+<link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#0f0f0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:#0f0f0f;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100dvh}
-.wrap{width:100%;max-width:360px;padding:24px 20px}
-.logo{text-align:center;margin-bottom:32px}
-.logo img{width:100px;border-radius:14px;margin-bottom:10px}
-.logo-name{font-size:24px;font-weight:800}
-.logo-sub{font-size:13px;color:#888;margin-top:4px}
-.btn{display:flex;align-items:center;gap:14px;width:100%;padding:16px 18px;border-radius:16px;border:none;cursor:pointer;margin-bottom:10px;text-decoration:none;transition:transform .12s}
-.btn:active{transform:scale(.97)}
-.btn-icon{font-size:24px;flex-shrink:0}
-.btn-text{text-align:left}
-.btn-label{font-size:16px;font-weight:800;display:block}
-.btn-desc{font-size:11px;opacity:.7;margin-top:2px;display:block}
-.b-w{background:#c2185b;color:#fff}
-.b-k{background:#1e0812;color:#c2185b;border:2px solid #c2185b}
-.b-bbq{background:#1e0800;color:#FF6B35;border:2px solid #FF6B35}
-.b-b1{background:#001c28;color:#00CFFF;border:2px solid #00CFFF}
-.b-b2{background:#1a0040;color:#7c4dff;border:2px solid #7c4dff}
-.b-c{background:#1a0028;color:#D946EF;border:2px solid #D946EF}
-.b-a{background:#1a1a1a;color:#c2185b;border:2px solid #c2185b}
-.footer{text-align:center;font-size:11px;color:#444;margin-top:24px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:#0f0f0f;color:#fff;font-size:15px}
+button,input,textarea{font:inherit;color:inherit}
+#app{height:100dvh;display:flex;flex-direction:column;max-width:640px;margin:0 auto}
+.topbar{flex-shrink:0;background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;gap:8px}
+#tb-name{font-size:17px;font-weight:800}
+#tb-sub{font-size:11px;color:#888;margin-top:1px}
+#tb-right{display:flex;gap:6px;align-items:center;flex-shrink:0}
+#conn{font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;background:#2d1f1f;color:#ff5b5b;border:1px solid #4a2a2a}
+#conn.live{background:#1f2d1f;color:#41d36f;border-color:#2a4a2a}
+.rpill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#2a2a2a;color:#888}
+#main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}
+#botnav{flex-shrink:0;background:#1a1a1a;border-top:1px solid #2a2a2a;display:flex;padding:6px 4px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px))}
+.bnb{flex:1;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;border-radius:12px;color:#555;font-size:10px;font-weight:700}
+.bnb svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bnb.act{color:#c2185b}
+.sc{display:none}.sc.on{display:block}
+.slabel{padding:14px 16px 6px;font-size:11px;font-weight:800;color:#888;text-transform:uppercase;letter-spacing:.08em;display:flex;justify-content:space-between;align-items:center}
+/* LOGIN */
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%;padding:40px 20px;text-align:center}
+#login-screen img{width:100px;border-radius:14px;margin-bottom:16px}
+#login-screen h2{font-size:20px;margin-bottom:4px}
+#login-screen p{font-size:13px;color:#888;margin-bottom:24px}
+#login-name{padding:14px;border-radius:14px;border:1.5px solid #2a2a2a;background:#1a1a1a;color:#fff;font-size:16px;width:100%;max-width:300px;text-align:center}
+#login-name:focus{outline:none;border-color:#c2185b}
+#login-btn{margin-top:12px;padding:14px 40px;border-radius:14px;border:none;background:#c2185b;color:#fff;font-size:15px;font-weight:800;cursor:pointer}
+/* MESAS */
+.mesa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:6px 14px 14px}
+@media(max-width:360px){.mesa-grid{grid-template-columns:repeat(3,1fr)}}
+.mc{background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:14px;padding:10px 8px;cursor:pointer;min-height:74px;display:flex;flex-direction:column;justify-content:space-between}
+.mc:active{transform:scale(.95)}
+.mc.ocu{border-color:#c2185b}
+.mc.sel{border-color:#c2185b;background:#1f0812}
+.mc-n{font-size:15px;font-weight:800}
+.mc-s{font-size:11px;font-weight:700;margin-top:3px}
+.mc-s.libre{color:#41d36f}.mc-s.ocu{color:#c2185b}
+.mc-t{font-size:10px;color:#FFD700;font-weight:700;margin-top:2px}
+.cli-row{display:flex;gap:8px;padding:6px 14px 12px}
+.cli-row input{flex:1;padding:12px 14px;border-radius:14px;border:1.5px solid #2a2a2a;background:#1a1a1a;color:#fff;font-size:15px;min-width:0}
+.cli-row input:focus{outline:none;border-color:#00CFFF}
+.cli-row input::placeholder{color:#555}
+.cli-row button{padding:12px 16px;border-radius:14px;border:none;background:#00CFFF;color:#012028;font-weight:800;cursor:pointer}
+.cc{background:#1a1a1a;border:1.5px solid #00CFFF;border-radius:14px;padding:10px 8px;cursor:pointer;min-height:74px;display:flex;flex-direction:column;justify-content:space-between}
+.cc:active{transform:scale(.95)}
+.cc.sel{background:#001c28}
+.cc-n{font-size:14px;font-weight:800;color:#00CFFF}
+.cc-s{font-size:11px;color:#888;margin-top:3px}
+.cc-t{font-size:10px;color:#FFD700;font-weight:700;margin-top:2px}
+/* PEDIDO */
+.ptop{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:12px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+.pbk{background:none;border:none;cursor:pointer;color:#c2185b;font-size:26px;line-height:1;padding:0 6px 0 0}
+.ptit{font-size:16px;font-weight:800;flex:1}
+.ptot{font-size:15px;font-weight:800;color:#FFD700}
+.ctabs{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid #2a2a2a;background:#0f0f0f;position:sticky;top:57px;z-index:4}
+.ctabs::-webkit-scrollbar{display:none}
+.ct{flex-shrink:0;padding:9px 16px;border-radius:999px;border:none;font-weight:800;font-size:13px;cursor:pointer;opacity:.4}
+.ct.on{opacity:1}
+.c-beb{background:#00CFFF;color:#012028}
+.c-ent{background:#ADFF2F;color:#0d1800}
+.c-pri{background:#c2185b;color:#fff}
+.c-pos{background:#D946EF;color:#100018}
+.c-bbq{background:#FF6B35;color:#fff}
+.c-def{background:#888;color:#111}
+.mrow{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #2a2a2a}
+.mi{flex:1;min-width:0}
+.mn{font-size:15px;font-weight:600;margin-bottom:3px}
+.mp{font-size:13px;color:#FFD700;font-weight:700}
+.qc{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.qb{width:42px;height:42px;border-radius:50%;border:none;font-size:24px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qb:active{transform:scale(.88)}
+.qm{background:#ff5b5b;color:#fff}
+.qp{background:#ADFF2F;color:#0d1800}
+.qn{min-width:22px;text-align:center;font-size:17px;font-weight:900}
+.qn.hasq{color:#ADFF2F}
+.nwrap{padding:12px 14px 6px}
+.nta{width:100%;padding:12px 14px;border-radius:14px;border:1.5px solid #2a2a2a;background:#1a1a1a;color:#fff;font-size:14px;resize:none}
+.nta:focus{outline:none;border-color:#c2185b}
+.nta::placeholder{color:#555}
+.sbar{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 14px;background:#1a1a1a;border-top:1px solid #2a2a2a}
+.sb{padding:13px 6px;border-radius:14px;border:none;font-weight:800;font-size:12px;cursor:pointer}
+.sb:active{opacity:.8}
+.s-coc{background:#c2185b;color:#fff}
+.s-bbq{background:#FF6B35;color:#fff}
+.s-b1{background:#00CFFF;color:#012028}
+.s-b2{background:#7c4dff;color:#fff}
+.s-bill{background:transparent;color:#D946EF;border:1.5px solid #D946EF}
+.s-cls{background:transparent;color:#41d36f;border:1.5px solid #41d36f}
+/* COMANDAS */
+.cmd-card{background:#1a1a1a;border:2px solid #2a2a2a;border-radius:16px;padding:14px;margin:8px 14px}
+.cmd-card.new{border-color:#c2185b;animation:glow 2s infinite}
+@keyframes glow{0%,100%{border-color:#c2185b}50%{border-color:#e91e63}}
+.cmd-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cmd-lbl{font-size:17px;font-weight:800}
+.cmd-cam{font-size:12px;color:#c2185b;font-weight:700}
+.cmd-meta{display:flex;align-items:center;gap:6px}
+.cmd-time{font-size:12px;color:#888}
+.cmd-dest{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px}
+.d-cocina{background:#1e0812;color:#c2185b;border:1px solid #c2185b}
+.d-barbacoa{background:#1e0800;color:#FF6B35;border:1px solid #FF6B35}
+.d-barra1{background:#001c28;color:#00CFFF;border:1px solid #00CFFF}
+.d-barra2{background:#1a0040;color:#7c4dff;border:1px solid #7c4dff}
+.d-caja{background:#1a0028;color:#D946EF;border:1px solid #D946EF}
+.cmd-items{margin-bottom:10px}
+.cmd-item{font-size:15px;padding:5px 0;border-bottom:1px solid #2a2a2a;color:#ddd}
+.cmd-item:last-child{border:none}
+.cmd-nota{font-size:13px;color:#c2185b;font-weight:700;padding:8px;background:#1e0812;border-radius:8px;margin-top:6px}
+.cmd-acts{display:flex;gap:8px}
+.ca{flex:1;padding:12px;border-radius:12px;border:none;font-weight:800;font-size:14px;cursor:pointer}
+.ca:active{opacity:.8}
+.ca-ok{background:#41d36f;color:#0d1800}
+.ca-done{background:#2a2a2a;color:#555;cursor:default}
+/* CAJA */
+.xcard{background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:16px;padding:16px;margin:10px 14px}
+.xh{font-size:16px;font-weight:800;margin-bottom:12px}
+.xl{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #2a2a2a;font-size:14px;color:#ccc}
+.xl:last-of-type{border:none}
+.xtot{display:flex;justify-content:space-between;font-size:18px;font-weight:800;padding:10px 0;border-top:2px solid #c2185b;margin-top:4px;color:#FFD700}
+.xcls{width:100%;margin-top:10px;padding:14px;border-radius:14px;border:none;background:#41d36f;color:#0d1800;font-weight:800;font-size:15px;cursor:pointer}
+/* TOAST */
+#toast{position:fixed;left:14px;right:14px;top:calc(72px + env(safe-area-inset-top,0px));z-index:9999;display:none;background:#FFD700;color:#1a1000;border-radius:16px;padding:14px 16px;box-shadow:0 8px 32px rgba(0,0,0,.6);align-items:flex-start;gap:10px}
+#toast.show{display:flex;animation:sd .2s ease-out}
+@keyframes sd{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+#t-i{font-size:20px;flex-shrink:0}#t-b{flex:1}
+#t-t{font-weight:800;font-size:14px}#t-m{font-size:13px;margin-top:2px;opacity:.85}
+#t-c{background:none;border:none;cursor:pointer;font-size:22px;color:#1a1000;opacity:.4;padding:0 0 0 6px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="logo">
-    <img src="https://i.imgur.com/MqiwJRj.png" alt="El Melao de Inés">
-    <div class="logo-name">El Melao de Inés</div>
-    <div class="logo-sub">QuickOrder · Sistema de comandas</div>
+<div id="app">
+  <div class="topbar">
+    <div><div id="tb-name">QuickOrder</div><div id="tb-sub"></div></div>
+    <div id="tb-right">
+      <span id="conn">● Local</span>
+      <span class="rpill" id="rpill">-</span>
+    </div>
   </div>
-  <a class="btn b-w" id="l-waiter"><span class="btn-icon">🧑‍🍽️</span><span class="btn-text"><span class="btn-label">Camarer@</span><span class="btn-desc">Tomar pedidos y gestionar mesas</span></span></a>
-  <a class="btn b-k" id="l-kitchen"><span class="btn-icon">🍳</span><span class="btn-text"><span class="btn-label">Cocina</span><span class="btn-desc">Entrantes, principales, postres</span></span></a>
-  <a class="btn b-bbq" id="l-barbacoa"><span class="btn-icon">🔥</span><span class="btn-text"><span class="btn-label">Barbacoa</span><span class="btn-desc">Parrilla y guarniciones</span></span></a>
-  <a class="btn b-b1" id="l-bar1"><span class="btn-icon">🍹</span><span class="btn-text"><span class="btn-label">Barra 1</span><span class="btn-desc">Bebidas</span></span></a>
-  <a class="btn b-b2" id="l-bar2"><span class="btn-icon">🍹</span><span class="btn-text"><span class="btn-label">Barra 2</span><span class="btn-desc">Bebidas</span></span></a>
-  <a class="btn b-c" id="l-cash"><span class="btn-icon">🧾</span><span class="btn-text"><span class="btn-label">Caja</span><span class="btn-desc">Cuentas y cierre de mesas</span></span></a>
-  <a class="btn b-a" href="./admin.html"><span class="btn-icon">⚙️</span><span class="btn-text"><span class="btn-label">Admin</span><span class="btn-desc">Editar menú, platos y precios</span></span></a>
-  <div class="footer">El Melao de Inés · QuickOrder</div>
+  <div id="main"></div>
+  <nav id="botnav"></nav>
 </div>
+<div id="toast"><span id="t-i">🔔</span><div id="t-b"><div id="t-t"></div><div id="t-m"></div></div><button id="t-c" onclick="hideToast()">✕</button></div>
 <script>
-const BASE='https://order.elmelaodeines.com/';
-const BACKEND='wss://melao-backend-production.up.railway.app';
-['waiter','kitchen','barbacoa','bar1','bar2','cash'].forEach(r=>{
-  const el=document.getElementById('l-'+r);
-  if(el) el.href=`${BASE}?role=${r}&backend=${BACKEND}`;
-});
+const SP=new URLSearchParams(location.search);
+const ROL=SP.get('role')||'waiter';
+const WSU=SP.get('backend')||'';
+const CMAP={bebidas:'c-beb',comenzar:'c-ent',entrantes:'c-ent',parrilla:'c-bbq',principales:'c-pri',criollas:'c-pri',guarniciones:'c-bbq',fastfood:'c-pri',kids:'c-ent',postres:'c-pos'};
+let CATS=[],MENU={};
+let mesas=Array.from({length:10},(_,i)=>({id:i+1,tipo:'mesa',estado:'libre',items:[],total:0}));
+let clientes=[],cliSeq=1,mesaAct=null,catAct=null,ws=null,tTimer=null;
+let staCmds=[],cajaCmds=[];
+let camareroName=localStorage.getItem('qo_camarero')||'';
+const $=s=>document.querySelector(s);
+const $$=s=>Array.from(document.querySelectorAll(s));
+const eur=v=>Number(v||0).toFixed(2).replace('.',',')+' €';
+const hhmm=()=>{const d=new Date();return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')};
+const getE=id=>typeof id==='number'?mesas.find(x=>x.id===id):clientes.find(x=>x.id===id);
+const totE=e=>e.items.reduce((s,x)=>s+x.p*x.q,0);
+const emit=p=>{if(ws?.readyState===1)ws.send(JSON.stringify(p))};
+
+async function boot(){
+  let data=null;
+  if(WSU){try{const r=await fetch(WSU.replace('wss://','https://').replace('ws://','http://')+'/menu');if(r.ok)data=await r.json();}catch{}}
+  if(data)applyMenu(data);
+  $('#rpill').textContent=ROL==='waiter'?'Camarer@':ROL;
+  if(ROL==='waiter') buildWaiter();
+  else if(ROL==='kitchen') buildStation('cocina','🍳 Cocina');
+  else if(ROL==='barbacoa') buildStation('barbacoa','🔥 Barbacoa');
+  else if(ROL==='bar1') buildStation('barra1','🍹 Barra 1');
+  else if(ROL==='bar2') buildStation('barra2','🍹 Barra 2');
+  else if(ROL==='cash') buildCash();
+  connectWS();
+}
+function applyMenu(d){
+  Object.keys(MENU).forEach(k=>delete MENU[k]);CATS.length=0;
+  d.categorias.forEach(c=>{CATS.push({id:c.id,label:c.label,cls:CMAP[c.id]||'c-def',dest:c.dest||'cocina',nota:c.nota_cat||''});MENU[c.id]=c.items;});
+  catAct=CATS[0]?.id;
+  $('#tb-name').textContent=d.restaurante?.nombre||'QuickOrder';
+  $('#tb-sub').textContent=d.restaurante?.subtitulo||'';
+  document.title=d.restaurante?.nombre||'QuickOrder';
+}
+
+// ══ WAITER ════════════════════════════════════════════════════════════════════
+function buildWaiter(){
+  if(!camareroName){
+    $('#main').innerHTML=`<div id="login-screen">
+      <img src="https://i.imgur.com/MqiwJRj.png" alt="El Melao">
+      <h2>El Melao de Inés</h2>
+      <p>Introduce tu nombre para empezar</p>
+      <input id="login-name" placeholder="Tu nombre…" maxlength="20">
+      <button id="login-btn" onclick="loginCam()">Entrar</button>
+    </div>`;
+    $('#botnav').innerHTML='';
+    return;
+  }
+  $('#main').innerHTML=`
+    <div class="sc on" id="sc-m">
+      <div class="slabel">Mesas <span id="mstat" style="color:#41d36f"></span>
+        <div style="display:flex;gap:6px">
+          <button onclick="quitarMesa()" style="width:32px;height:32px;border-radius:50%;border:none;background:#ff5b5b;color:#fff;font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center">−</button>
+          <button onclick="agregarMesa()" style="width:32px;height:32px;border-radius:50%;border:none;background:#ADFF2F;color:#0d1800;font-size:20px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center">+</button>
+        </div>
+      </div>
+      <div class="mesa-grid" id="mgrid"></div>
+      <div class="slabel">Clientes en barra</div>
+      <div class="cli-row"><input id="cinp" placeholder="Nombre del cliente…" maxlength="32"><button id="cbtn">+ Cliente</button></div>
+      <div class="mesa-grid" id="cgrid"></div>
+    </div>
+    <div class="sc" id="sc-p">
+      <div class="ptop">
+        <button class="pbk" onclick="goMesas()">←</button>
+        <div class="ptit" id="ptit">—</div>
+        <div class="ptot" id="ptot">0,00 €</div>
+      </div>
+      <div class="ctabs" id="ctabs"></div>
+      <div id="mlist"></div>
+      <div class="nwrap"><textarea class="nta" id="nota" rows="2" placeholder="Nota para cocina / barbacoa…"></textarea></div>
+      <div class="sbar">
+        <button class="sb s-coc" onclick="enviar('cocina')">🍳 Cocina</button>
+        <button class="sb s-bbq" onclick="enviar('barbacoa')">🔥 Barbacoa</button>
+        <button class="sb s-b1" onclick="enviar('barra1')">🍹 Barra 1</button>
+        <button class="sb s-b2" onclick="enviar('barra2')">🍹 Barra 2</button>
+        <button class="sb s-bill" onclick="pedirCuenta()">🧾 Cuenta</button>
+        <button class="sb s-cls" onclick="cerrarMesa()">✓ Cerrar</button>
+      </div>
+    </div>
+    <div class="sc" id="sc-a">
+      <div class="slabel">Avisos</div>
+      <div id="alist"><div style="padding:40px 20px;text-align:center;color:#555">Sin avisos</div></div>
+    </div>`;
+  $('#botnav').innerHTML=`
+    <button class="bnb act" onclick="wTab('m',this)"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Mesas</button>
+    <button class="bnb" onclick="wTab('p',this)"><svg viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>Pedido</button>
+    <button class="bnb" id="nb-a" onclick="wTab('a',this)"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Avisos</button>`;
+  $('#cbtn').onclick=addCliente;$('#cinp').onkeydown=e=>{if(e.key==='Enter')addCliente()};
+  renderMesas();
+}
+function loginCam(){
+  const n=$('#login-name')?.value.trim();
+  if(!n)return;
+  camareroName=n;localStorage.setItem('qo_camarero',n);
+  buildWaiter();
+}
+function wTab(id,btn){
+  if(id==='p'&&mesaAct===null){toast('Selecciona una mesa','','⚠️');return;}
+  $$('.sc').forEach(s=>s.classList.remove('on'));$$('.bnb').forEach(b=>b.classList.remove('act'));
+  $('#sc-'+id)?.classList.add('on');btn?.classList.add('act');
+  if(id==='p'){renderCatBar();renderMenuItems();}
+  if(id==='a'){const nb=$('#nb-a');if(nb)nb.style.color='';}
+}
+function goMesas(){wTab('m',$$('.bnb')[0])}
+function renderMesas(){
+  const g=$('#mgrid'),cg=$('#cgrid'),ms=$('#mstat');
+  if(!g)return;
+  const libre=mesas.filter(m=>m.estado==='libre').length;
+  if(ms)ms.textContent=libre+' libres';
+  g.innerHTML=mesas.map(m=>`<div class="mc ${m.estado==='ocupada'?'ocu':''} ${mesaAct===m.id?'sel':''}" onclick="selMesa(${m.id})"><div class="mc-n">Mesa ${m.id}</div><div class="mc-s ${m.estado==='libre'?'libre':'ocu'}">${m.estado==='libre'?'Libre':'Ocupada'}</div>${m.items.length?`<div class="mc-t">${eur(totE(m))}</div>`:''}</div>`).join('');
+  if(!cg)return;
+  cg.innerHTML=clientes.length?clientes.map(c=>`<div class="cc ${mesaAct===c.id?'sel':''}" onclick="selMesa('${c.id}')"><div class="cc-n">${c.nombre}</div><div class="cc-s">barra</div>${c.items.length?`<div class="cc-t">${eur(totE(c))}</div>`:''}</div>`).join(''):'<div style="grid-column:1/-1;font-size:13px;color:#555;padding-bottom:8px">Sin clientes</div>';
+}
+function selMesa(id){mesaAct=id;catAct=CATS[0]?.id;const e=getE(id);$('#ptit').textContent=e.tipo==='cliente'?e.nombre:'Mesa '+e.id;$('#nota').value='';wTab('p',$$('.bnb')[1]);}
+function addCliente(){const inp=$('#cinp'),nom=inp?.value.trim();if(!nom){inp?.focus();return;}const id='cli_'+cliSeq++;clientes.push({id,tipo:'cliente',nombre:nom,estado:'abierta',items:[],total:0});inp.value='';emit({type:'sync',mesas,clientes});selMesa(id);}
+function agregarMesa(){const nid=mesas.length?Math.max(...mesas.map(m=>m.id))+1:1;mesas.push({id:nid,tipo:'mesa',estado:'libre',items:[],total:0});renderMesas();emit({type:'sync',mesas,clientes});}
+function quitarMesa(){if(mesas.length<=1)return;const u=mesas[mesas.length-1];if(u.estado==='ocupada'){toast('Ocupada','No se puede eliminar','⚠️');return;}if(mesaAct===u.id){mesaAct=null;goMesas();}mesas.pop();renderMesas();emit({type:'sync',mesas,clientes});}
+window.agregarMesa=agregarMesa;window.quitarMesa=quitarMesa;
+function renderCatBar(){const el=$('#ctabs');if(!el)return;el.innerHTML=CATS.map(c=>`<button class="ct ${c.cls} ${catAct===c.id?'on':''}" onclick="selCat('${c.id}')">${c.label}</button>`).join('');}
+function selCat(id){catAct=id;renderCatBar();renderMenuItems();}
+function renderMenuItems(){const el=$('#mlist');if(!el||!catAct)return;const e=mesaAct!=null?getE(mesaAct):null;const cat=CATS.find(c=>c.id===catAct);let h=cat?.nota?`<div style="padding:10px 16px;font-size:12px;color:#FFD700;font-weight:700">${cat.nota}</div>`:'';h+=(MENU[catAct]||[]).map(it=>{const q=e?.items.find(x=>x.id===it.id)?.q||0;return `<div class="mrow"><div class="mi"><div class="mn">${it.n}</div><div class="mp">${eur(it.p)}</div></div><div class="qc"><button class="qb qm" onclick="chg('${it.id}',-1)">−</button><div class="qn${q>0?' hasq':''}" id="qi-${it.id}">${q}</div><button class="qb qp" onclick="chg('${it.id}',1)">+</button></div></div>`;}).join('');el.innerHTML=h;}
+function chg(id,d){if(mesaAct===null)return;const e=getE(mesaAct);const prod=(MENU[catAct]||[]).find(x=>x.id===id);if(!prod)return;let it=e.items.find(x=>x.id===id);if(!it&&d>0)e.items.push({id,n:prod.n,p:prod.p,q:1,cat:catAct,dest:CATS.find(c=>c.id===catAct).dest});else if(it){it.q+=d;if(it.q<=0)e.items=e.items.filter(x=>x.id!==id);}e.estado='ocupada';e.total=totE(e);const el=document.getElementById('qi-'+id);if(el){const q=e.items.find(x=>x.id===id)?.q||0;el.textContent=q;el.className='qn'+(q>0?' hasq':'');}$('#ptot').textContent=eur(totE(e));emit({type:'sync',mesas,clientes});renderMesas();}
+window.chg=chg;
+function enviar(dest){if(mesaAct===null){toast('Sin mesa','','⚠️');return;}const e=getE(mesaAct);if(!e.items.length){toast('Sin platos','','⚠️');return;}emit({type:'order',dest,mesa:mesaAct,label:e.tipo==='cliente'?e.nombre:'Mesa '+e.id,camarero:camareroName,items:e.items.map(x=>({...x})),nota:$('#nota')?.value||'',total:e.total,time:new Date().toISOString()});toast('Enviado',(e.tipo==='cliente'?e.nombre:'Mesa '+e.id)+' → '+dest,'✅');}
+window.enviar=enviar;
+function pedirCuenta(){if(mesaAct===null)return;const e=getE(mesaAct);emit({type:'bill',dest:'caja',mesa:mesaAct,label:e.tipo==='cliente'?e.nombre:'Mesa '+e.id,camarero:camareroName,items:e.items.map(x=>({...x})),total:e.total,time:new Date().toISOString()});toast('Cuenta','Enviada a caja','🧾');}
+function cerrarMesa(){if(mesaAct===null)return;const e=getE(mesaAct);e.items=[];e.total=0;e.estado='libre';if(e.tipo==='cliente')clientes=clientes.filter(c=>c.id!==mesaAct);$('#nota').value='';emit({type:'close',mesa:mesaAct,clientes});mesaAct=null;renderMesas();goMesas();}
+function addAviso(msg){const el=$('#alist');if(!el)return;const nb=$('#nb-a');if(nb)nb.style.color='#c2185b';const empty=el.querySelector('[style*="40px"]');if(empty)el.innerHTML='';const d=document.createElement('div');d.className='cmd-card new';d.innerHTML=`<div class="cmd-top"><div class="cmd-lbl">🍽️ ${msg.label}</div><div class="cmd-time">${hhmm()}</div></div><div style="font-size:15px;color:#ADFF2F;font-weight:700;padding:4px 0">${msg.item} — listo para llevar</div>`;el.prepend(d);}
+
+// ══ ESTACIÓN ══════════════════════════════════════════════════════════════════
+function buildStation(destF,titulo){staCmds=[];$('#main').innerHTML=`<div class="slabel">${titulo}<span id="stb" style="color:#c2185b"></span></div><div id="stl"><div style="padding:40px 20px;text-align:center;color:#555">Esperando comandas…</div></div>`;$('#botnav').innerHTML='';}
+function renderStation(){const el=$('#stl'),badge=$('#stb');if(!el)return;const pend=staCmds.filter(c=>c.st==='pend').length;if(badge)badge.textContent=pend?` · ${pend} pendiente${pend>1?'s':''}` :'';if(!staCmds.length){el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#555">Sin comandas</div>';return;}
+el.innerHTML=staCmds.map((c,i)=>`<div class="cmd-card ${c.st==='pend'?'new':''}"><div class="cmd-top"><div><div class="cmd-lbl">${c.label}</div>${c.camarero?`<div class="cmd-cam">👤 ${c.camarero}</div>`:''}</div><div class="cmd-meta"><span class="cmd-time">${c.t}</span><span class="cmd-dest d-${c.dest}">${c.dest}</span></div></div><div class="cmd-items">${c.items.map(x=>`<div class="cmd-item">${x.q}× ${x.n}</div>`).join('')}${c.nota?`<div class="cmd-nota">⚠️ ${c.nota}</div>`:''}</div><div class="cmd-acts">${c.st==='pend'?`<button class="ca ca-ok" onclick="staListo(${i})">✓ Listo — avisar camarer@</button>`:`<button class="ca ca-done" disabled>Entregado</button>`}</div></div>`).join('');}
+function staListo(i){const c=staCmds[i];if(!c)return;c.st='done';emit({type:'ready',action:'ready',mesa:c.mesa,label:c.label,item:c.items[0]?.n||''});renderStation();}
+window.staListo=staListo;
+
+// ══ CAJA ══════════════════════════════════════════════════════════════════════
+function buildCash(){cajaCmds=[];$('#main').innerHTML=`<div class="slabel">Caja<span id="cb" style="color:#c2185b"></span></div><div id="cl"><div style="padding:40px 20px;text-align:center;color:#555">Sin cuentas</div></div>`;$('#botnav').innerHTML='';}
+function renderCash(){const el=$('#cl'),badge=$('#cb');if(!el)return;if(badge)badge.textContent=cajaCmds.length?` · ${cajaCmds.length}`:'';if(!cajaCmds.length){el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#555">Sin cuentas</div>';return;}
+el.innerHTML=cajaCmds.map((c,i)=>`<div class="xcard"><div class="xh">🧾 ${c.label} ${c.camarero?'· 👤 '+c.camarero:''} <span style="font-size:12px;color:#888">${c.t}</span></div>${c.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${eur(x.p*x.q)}</span></div>`).join('')}<div class="xtot"><span>Total</span><span>${eur(c.total)}</span></div>${c.nota?`<div style="font-size:12px;color:#c2185b;margin-top:6px">⚠️ ${c.nota}</div>`:''}<button class="xcls" onclick="cajaCobrar(${i})">✓ Cobrado — cerrar mesa</button></div>`).join('');}
+function cajaCobrar(i){const c=cajaCmds[i];emit({type:'close',mesa:c.mesa,clientes:[]});cajaCmds.splice(i,1);renderCash();toast('Cerrada',c.label+' cobrada','✅');}
+window.cajaCobrar=cajaCobrar;
+
+// ══ WS ════════════════════════════════════════════════════════════════════════
+function connectWS(){if(!WSU){setLive(false);return;}if(ws&&(ws.readyState===0||ws.readyState===1))return;
+try{ws=new WebSocket(WSU+'?role='+ROL);
+ws.onopen=()=>setLive(true);ws.onclose=()=>{ws=null;setLive(false);setTimeout(connectWS,3000)};ws.onerror=()=>{ws=null;setLive(false)};
+ws.addEventListener('message',ev=>{let msg;try{msg=JSON.parse(ev.data)}catch{return}
+if(msg.type==='sync'){if(Array.isArray(msg.mesas))mesas=msg.mesas;if(Array.isArray(msg.clientes))clientes=msg.clientes;if(ROL==='waiter')renderMesas();}
+if(msg.type==='order'){const destMatch={'kitchen':'cocina','barbacoa':'barbacoa','bar1':'barra1','bar2':'barra2'};const myDest=destMatch[ROL];if(myDest&&msg.dest===myDest){staCmds.unshift({...msg,t:hhmm(),st:'pend'});renderStation();vib();toast('Nueva comanda',msg.label+(msg.camarero?' · '+msg.camarero:''),'🍳');}}
+if(msg.type==='bill'&&ROL==='cash'){cajaCmds.unshift({...msg,t:hhmm()});renderCash();vib();toast('Cuenta',msg.label,'🧾');}
+if(msg.type==='notify'&&msg.action==='ready'&&ROL==='waiter'){const txt=msg.label+': '+msg.item+' listo';toast('Plato listo',txt,'🍽️');addAviso(msg);vib();if(Notification?.permission==='granted')new Notification('Plato listo',{body:txt}).catch(()=>{});}
+if(msg.type==='menu-update'&&msg.menu){applyMenu(msg.menu);if(ROL==='waiter'&&mesaAct!=null){renderCatBar();renderMenuItems();}}
+});}catch(e){setLive(false);}}
+function setLive(ok){const el=$('#conn');el.textContent=ok?'● En vivo':'● Local';el.className=ok?'live':'';}
+function vib(){if(navigator.vibrate)navigator.vibrate([150,80,150]);}
+function toast(t,m,i){$('#t-i').textContent=i||'🔔';$('#t-t').textContent=t;$('#t-m').textContent=m||'';$('#toast').classList.add('show');clearTimeout(tTimer);tTimer=setTimeout(hideToast,4500);}
+function hideToast(){$('#toast').classList.remove('show');}
+window.hideToast=hideToast;
+document.addEventListener('click',()=>{if(Notification?.permission==='default')Notification.requestPermission().catch(()=>{})},{once:true});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
+boot();
 </script>
 </body>
 </html>
