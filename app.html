@@ -330,6 +330,7 @@ function renderControl(){
 }
 function renderCash(){const el=$('#cl'),badge=$('#cb');if(!el)return;if(badge)badge.textContent=cajaCmds.length?` · ${cajaCmds.length}`:'';if(!cajaCmds.length){el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#555">Sin cuentas</div>';return;}
 el.innerHTML=cajaCmds.map((c,i)=>`<div class="xcard"><div class="xh">🧾 ${c.label} ${c.camarero?'· 👤 '+c.camarero:''} <span style="font-size:12px;color:#888">${c.t}</span></div>${c.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${eur(x.p*x.q)}</span></div>`).join('')}<div class="xtot"><span>Total</span><span>${eur(c.total)}</span></div>${c.nota?`<div style="font-size:12px;color:#c2185b;margin-top:6px">⚠️ ${c.nota}</div>`:''}<div style="display:flex;gap:6px;margin-top:8px"><button style="flex:1;padding:10px;border-radius:12px;border:1.5px solid #00CFFF;background:transparent;color:#00CFFF;font-weight:800;font-size:12px;cursor:pointer" onclick="printTicket(cajaCmds[${i}],false)">🖨️ Ticket</button><button style="flex:1;padding:10px;border-radius:12px;border:1.5px solid #888;background:transparent;color:#888;font-weight:800;font-size:12px;cursor:pointer" onclick="printTicket(cajaCmds[${i}],true)">📋 Copia</button></div>
+      <button style="width:100%;margin-top:6px;padding:10px;border-radius:12px;border:1.5px solid #ADFF2F;background:transparent;color:#ADFF2F;font-weight:800;font-size:12px;cursor:pointer" onclick="emailTicket(cajaCmds[${i}])">📧 Enviar factura por email</button>
       <button class="xcls" onclick="cajaCobrar(${i})">✓ Cobrado — cerrar mesa</button></div>`).join('');}
 function cajaCobrar(i){const c=cajaCmds[i];if(!confirm('¿Seguro cerrar '+c.label+'?'))return;delete cajaOrders[String(c.mesa)];renderControl();emit({type:'close',mesa:c.mesa,clientes:[]});cajaCmds.splice(i,1);renderCash();toast('Cerrada',c.label+' cobrada','✅');}
 window.cajaCobrar=cajaCobrar;
@@ -383,6 +384,64 @@ async function printTicket(data, isCopy){
   w.document.close();
 }
 window.printTicket=printTicket;
+
+async function emailTicket(data){
+  const to = prompt('Email del cliente:');
+  if(!to || !to.includes('@')) return;
+  const items = data.items || [];
+  const total = data.total || 0;
+  const fecha = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const hora = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  let ticketId='';
+  try{
+    const apiBase=WSU.replace('wss://','https://').replace('ws://','http://');
+    const r=await fetch(apiBase+'/ticket-number',{method:'POST'});
+    if(r.ok){const d=await r.json();ticketId=d.id;}
+  }catch(e){}
+  if(!ticketId)ticketId=new Date().getFullYear()+'-'+String(Math.floor(Math.random()*9999)).padStart(4,'0');
+  const base=(total/1.10);
+  const iva=total-base;
+  const ticketHtml=`<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;color:#333">
+<div style="text-align:center;margin-bottom:16px">
+<div style="font-size:20px;font-weight:bold">EL MELAO DE INÉS</div>
+<div style="font-size:12px;color:#666">Orlando Jose Castillo Osorio</div>
+<div style="font-size:12px;color:#666">CIF: Z2012842W</div>
+<div style="font-size:12px;color:#666">C/ de los Panaderos, 25</div>
+<div style="font-size:12px;color:#666">28410 Manzanares Soto del Real, España</div>
+</div>
+<hr style="border:1px dashed #ccc">
+<div style="text-align:center;font-weight:bold;margin:10px 0">FACTURA SIMPLIFICADA</div>
+<div style="text-align:center;font-size:12px;color:#666">Nº ${ticketId}</div>
+<hr style="border:1px dashed #ccc">
+<div style="display:flex;justify-content:space-between;font-size:12px;margin:8px 0"><span>Fecha: ${fecha}</span><span>Hora: ${hora}</span></div>
+<div style="font-weight:bold;margin-bottom:4px">${data.label||''}</div>
+${data.camarero?'<div style="font-size:12px;color:#666">Camarer@: '+data.camarero+'</div>':''}
+<hr style="border:1px dashed #ccc">
+<table style="width:100%;font-size:13px;border-collapse:collapse;margin:8px 0">
+<tr style="border-bottom:1px solid #eee;font-weight:bold"><td>Producto</td><td style="text-align:center;width:30px">Ud</td><td style="text-align:right;width:60px">Importe</td></tr>
+${items.map(x=>'<tr style="border-bottom:1px solid #eee"><td style="padding:4px 0">'+x.n+'</td><td style="text-align:center">'+x.q+'</td><td style="text-align:right">'+(x.p*x.q).toFixed(2)+' €</td></tr>').join('')}
+</table>
+<hr style="border:1px dashed #ccc">
+<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;margin:10px 0"><span>TOTAL</span><span>${Number(total).toFixed(2)} €</span></div>
+<hr style="border:1px dashed #ccc">
+<div style="font-size:11px;color:#666;margin:6px 0"><div style="display:flex;justify-content:space-between"><span>Base imponible (10%)</span><span>${base.toFixed(2)} €</span></div>
+<div style="display:flex;justify-content:space-between"><span>IVA 10%</span><span>${iva.toFixed(2)} €</span></div></div>
+<hr style="border:1px dashed #ccc">
+<div style="text-align:center;margin-top:12px;font-size:13px;color:#888">Gracias por su visita</div>
+<div style="text-align:center;font-size:11px;color:#aaa">elmelaodeines.com</div>
+</body></html>`;
+  try{
+    const apiBase=WSU.replace('wss://','https://').replace('ws://','http://');
+    const r=await fetch(apiBase+'/ticket-email',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({to,ticketHtml,subject:'Factura simplificada Nº '+ticketId+' · El Melao de Inés'})
+    });
+    if(r.ok) toast('Email enviado','Factura enviada a '+to,'📧');
+    else toast('Error','No se pudo enviar','⚠️');
+  }catch(e){ toast('Error','Sin conexión','⚠️'); }
+}
+window.emailTicket=emailTicket;
+
 
 // ══ WS ════════════════════════════════════════════════════════════════════════
 function connectWS(){if(!WSU){setLive(false);return;}if(ws&&(ws.readyState===0||ws.readyState===1))return;
