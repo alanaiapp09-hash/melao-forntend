@@ -325,12 +325,60 @@ function renderControl(){
   const el=document.getElementById('ctrl-list');if(!el)return;
   const keys=Object.keys(cajaOrders);
   if(!keys.length){el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#555">Sin pedidos</div>';return;}
-  el.innerHTML=keys.map(k=>{const o=cajaOrders[k];return `<div class="xcard"><div class="xh">${o.label} ${o.camarero?'· 👤 '+o.camarero:''}</div>${o.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${(x.p*x.q).toFixed(2).replace('.',',')} €</span></div>`).join('')}<div class="xtot"><span>Total acumulado</span><span>${o.total.toFixed(2).replace('.',',')} €</span></div></div>`;}).join('');
+  el.innerHTML=keys.map(k=>{const o=cajaOrders[k];return `<div class="xcard"><div class="xh">${o.label} ${o.camarero?'· 👤 '+o.camarero:''}</div>${o.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${(x.p*x.q).toFixed(2).replace('.',',')} €</span></div>`).join('')}<div class="xtot"><span>Total acumulado</span><span>${o.total.toFixed(2).replace('.',',')} €</span></div>
+<button style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1.5px solid #00CFFF;background:transparent;color:#00CFFF;font-weight:800;font-size:13px;cursor:pointer" onclick="printTicket(cajaOrders['${k}'])">🖨️ Imprimir</button></div>`;}).join('');
 }
 function renderCash(){const el=$('#cl'),badge=$('#cb');if(!el)return;if(badge)badge.textContent=cajaCmds.length?` · ${cajaCmds.length}`:'';if(!cajaCmds.length){el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#555">Sin cuentas</div>';return;}
-el.innerHTML=cajaCmds.map((c,i)=>`<div class="xcard"><div class="xh">🧾 ${c.label} ${c.camarero?'· 👤 '+c.camarero:''} <span style="font-size:12px;color:#888">${c.t}</span></div>${c.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${eur(x.p*x.q)}</span></div>`).join('')}<div class="xtot"><span>Total</span><span>${eur(c.total)}</span></div>${c.nota?`<div style="font-size:12px;color:#c2185b;margin-top:6px">⚠️ ${c.nota}</div>`:''}<button class="xcls" onclick="cajaCobrar(${i})">✓ Cobrado — cerrar mesa</button></div>`).join('');}
+el.innerHTML=cajaCmds.map((c,i)=>`<div class="xcard"><div class="xh">🧾 ${c.label} ${c.camarero?'· 👤 '+c.camarero:''} <span style="font-size:12px;color:#888">${c.t}</span></div>${c.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${eur(x.p*x.q)}</span></div>`).join('')}<div class="xtot"><span>Total</span><span>${eur(c.total)}</span></div>${c.nota?`<div style="font-size:12px;color:#c2185b;margin-top:6px">⚠️ ${c.nota}</div>`:''}<button style="width:100%;margin-top:8px;padding:12px;border-radius:12px;border:1.5px solid #00CFFF;background:transparent;color:#00CFFF;font-weight:800;font-size:14px;cursor:pointer" onclick="printTicket(cajaCmds[${i}])">🖨️ Imprimir ticket</button>
+      <button class="xcls" onclick="cajaCobrar(${i})">✓ Cobrado — cerrar mesa</button></div>`).join('');}
 function cajaCobrar(i){const c=cajaCmds[i];if(!confirm('¿Seguro cerrar '+c.label+'?'))return;delete cajaOrders[String(c.mesa)];renderControl();emit({type:'close',mesa:c.mesa,clientes:[]});cajaCmds.splice(i,1);renderCash();toast('Cerrada',c.label+' cobrada','✅');}
 window.cajaCobrar=cajaCobrar;
+
+
+function printTicket(data){
+  const items = data.items || [];
+  const total = data.total || 0;
+  const fecha = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const hora = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  const w = window.open('','_blank','width=320,height=600');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ticket</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Courier New',monospace;width:80mm;padding:4mm;font-size:12px;color:#000}
+.center{text-align:center}
+.bold{font-weight:bold}
+.line{border-top:1px dashed #000;margin:6px 0}
+.row{display:flex;justify-content:space-between;padding:2px 0}
+.item-name{flex:1}
+.item-qty{width:30px;text-align:center}
+.item-price{width:60px;text-align:right}
+.total-row{display:flex;justify-content:space-between;font-weight:bold;font-size:14px;padding:4px 0}
+.footer{text-align:center;font-size:10px;margin-top:8px;color:#666}
+</style></head><body>
+<div class="center bold" style="font-size:16px">El Melao de Inés</div>
+<div class="center" style="font-size:10px">Restobar</div>
+<div class="center" style="font-size:10px">C/ Bilbao, 1 · Soto del Real</div>
+<div class="center" style="font-size:10px">Tel: 670 358 220</div>
+<div class="line"></div>
+<div class="row"><span>${fecha}</span><span>${hora}</span></div>
+<div class="row"><span class="bold">${data.label||''}</span>${data.camarero?'<span>'+data.camarero+'</span>':''}</div>
+<div class="line"></div>
+<div class="row bold"><span class="item-name">Producto</span><span class="item-qty">Ud</span><span class="item-price">Importe</span></div>
+<div class="line"></div>
+${items.map(x=>'<div class="row"><span class="item-name">'+x.n+'</span><span class="item-qty">'+x.q+'</span><span class="item-price">'+(x.p*x.q).toFixed(2)+' €</span></div>').join('')}
+<div class="line"></div>
+<div class="total-row"><span>TOTAL</span><span>${Number(total).toFixed(2)} €</span></div>
+<div class="line"></div>
+<div class="row"><span>Base imp. (10%)</span><span>${(total/1.10).toFixed(2)} €</span></div>
+<div class="row"><span>IVA 10%</span><span>${(total - total/1.10).toFixed(2)} €</span></div>
+<div class="line"></div>
+<div class="footer">Gracias por su visita</div>
+<div class="footer">QuickOrder · elmelaodeines.com</div>
+<script>window.onload=function(){window.print();}<\/script>
+</body></html>`);
+  w.document.close();
+}
+window.printTicket=printTicket;
 
 // ══ WS ════════════════════════════════════════════════════════════════════════
 function connectWS(){if(!WSU){setLive(false);return;}if(ws&&(ws.readyState===0||ws.readyState===1))return;
