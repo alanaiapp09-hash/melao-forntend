@@ -134,23 +134,6 @@ button,input,textarea{font:inherit;color:inherit}
 #t-i{font-size:20px;flex-shrink:0}#t-b{flex:1}
 #t-t{font-weight:800;font-size:14px}#t-m{font-size:13px;margin-top:2px;opacity:.85}
 #t-c{background:none;border:none;cursor:pointer;font-size:22px;color:#1a1000;opacity:.4;padding:0 0 0 6px}
-
-#print-zone{display:none}
-@media print{
-  #app,#toast,.topbar,#botnav,#main{display:none!important}
-  #print-zone{display:block!important;width:72mm;margin:0;padding:2mm;font-family:"Courier New",monospace;font-size:12px;color:#000;background:#fff!important;line-height:1.4}body{background:#fff!important;color:#000!important}
-  @page{margin:0;size:auto}
-  .pln{border-bottom:1px dashed #000;margin:4px 0}
-  .pc{text-align:center}
-  .pr{text-align:right}
-  .pb{font-weight:bold}
-  .psm{font-size:10px}
-  .pbig{font-size:16px;font-weight:bold}
-  .prow{display:flex;justify-content:space-between;padding:1px 0}
-  .ptbl{width:100%;border-collapse:collapse}
-  .ptbl td{padding:1px 0;vertical-align:top}
-  .ptbl .pn{width:auto}.ptbl .pq{width:22px;text-align:center}.ptbl .pp{width:50px;text-align:right}
-}
 </style>
 </head>
 <body>
@@ -164,7 +147,6 @@ button,input,textarea{font:inherit;color:inherit}
   </div>
   <div id="main"></div>
   <nav id="botnav"></nav>
-<div id="print-zone"></div>
 </div>
 <div id="toast"><span id="t-i">🔔</span><div id="t-b"><div id="t-t"></div><div id="t-m"></div></div><button id="t-c" onclick="hideToast()">✕</button></div>
 <script>
@@ -356,43 +338,21 @@ window.cajaCobrar=cajaCobrar;
 
 
 async function printTicket(data, isCopy){
-  const items=data.items||[];
-  const total=data.total||0;
-  const fecha=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const hora=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   let ticketId='';
-  try{const apiBase=WSU.replace('wss://','https://').replace('ws://','http://');const r=await fetch(apiBase+'/ticket-number',{method:'POST'});if(r.ok){const d=await r.json();ticketId=d.id;}}catch(e){}
+  try{
+    const apiBase=WSU.replace('wss://','https://').replace('ws://','http://');
+    const r=await fetch(apiBase+'/ticket-number',{method:'POST'});
+    if(r.ok){const d=await r.json();ticketId=d.id;}
+  }catch(e){}
   if(!ticketId)ticketId=new Date().getFullYear()+'-'+String(Math.floor(Math.random()*9999)).padStart(4,'0');
-  const base=total/1.10;
-  const iva=total-base;
-  const zone=document.getElementById('print-zone');
-  zone.innerHTML=
-    '<div class="pc pb" style="font-size:14px">EL MELAO DE INÉS</div>'+
-    '<div class="pc psm">Orlando Jose Castillo Osorio</div>'+
-    '<div class="pc psm">CIF: Z2012842W</div>'+
-    '<div class="pc psm">C/ de los Panaderos, 25</div>'+
-    '<div class="pc psm">28410 Manzanares Soto del Real</div>'+
-    '<div class="pln"></div>'+
-    (isCopy?'<div class="pc pb" style="border:1px solid #000;padding:3px;margin:4px 0">COPIA DE FACTURA SIMPLIFICADA</div><div class="pln"></div>':'')+
-    '<div class="pc pb">FACTURA SIMPLIFICADA</div>'+
-    '<div class="pc psm">Nº '+ticketId+'</div>'+
-    '<div class="pln"></div>'+
-    '<div class="prow"><span>Fecha: '+fecha+'</span><span>'+hora+'</span></div>'+
-    '<div class="pb">'+(data.label||'')+'</div>'+
-    (data.camarero?'<div>Camarer@: '+data.camarero+'</div>':'')+
-    '<div class="pln"></div>'+
-    '<table class="ptbl"><tr class="pb"><td class="pn">Producto</td><td class="pq">Ud</td><td class="pp">Importe</td></tr></table>'+
-    '<div class="pln"></div>'+
-    '<table class="ptbl">'+items.map(function(x){return '<tr><td class="pn">'+x.n+'</td><td class="pq">'+x.q+'</td><td class="pp">'+(x.p*x.q*1.10).toFixed(2)+'</td></tr>'}).join('')+'</table>'+
-    '<div class="pln"></div>'+
-    '<div class="prow pbig"><span>TOTAL</span><span>'+Number(total).toFixed(2)+' €</span></div>'+
-    '<div class="pln"></div>'+
-    '<div class="prow psm"><span>Base imponible</span><span>'+base.toFixed(2)+' €</span></div>'+
-    '<div class="prow psm"><span>IVA 10%</span><span>'+iva.toFixed(2)+' €</span></div>'+
-    '<div class="pln"></div>'+
-    '<div class="pc" style="padding-top:6px">Gracias por su visita</div>'+
-    '<div class="pc psm">elmelaodeines.com</div>';
-  setTimeout(function(){window.print();},300);
+  try{
+    const r=await fetch('http://localhost:3333/print',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({items:data.items,total:data.total,label:data.label,camarero:data.camarero,ticketId:ticketId,isCopy:!!isCopy})
+    });
+    if(r.ok) toast('Impreso',data.label+' · Nº '+ticketId,'🖨️');
+    else toast('Error','No se pudo imprimir','⚠️');
+  }catch(e){toast('Sin impresora','Inicia el servidor de impresión en la laptop','⚠️');}
 }
 window.printTicket=printTicket;
 
