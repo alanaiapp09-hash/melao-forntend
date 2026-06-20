@@ -342,47 +342,71 @@ async function printTicket(data, isCopy){
   const total = data.total || 0;
   const fecha = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
   const hora = new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  let ticketId = '';
-  let ticketNum = '';
+  let ticketId='';
   try{
-    const apiBase = WSU.replace('wss://','https://').replace('ws://','http://');
-    const r = await fetch(apiBase+'/ticket-number',{method:'POST'});
-    if(r.ok){const d=await r.json(); ticketId=d.id; ticketNum=d.num;}
+    const apiBase=WSU.replace('wss://','https://').replace('ws://','http://');
+    const r=await fetch(apiBase+'/ticket-number',{method:'POST'});
+    if(r.ok){const d=await r.json();ticketId=d.id;}
   }catch(e){}
-  if(!ticketId){ ticketId=new Date().getFullYear()+'-'+String(Math.floor(Math.random()*9999)).padStart(4,'0'); }
-  const base = (total/1.10);
-  const iva = total - base;
-  const copyLabel = isCopy ? '<div class="center bold" style="font-size:13px;margin:6px 0;border:1px solid #000;padding:4px">COPIA DE FACTURA SIMPLIFICADA</div>' : '';
-  const w = window.open('','_blank','width=320,height=700');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Ticket</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:"Courier New",monospace;width:80mm;padding:3mm;font-size:11px;color:#000}.center{text-align:center}.bold{font-weight:bold}.line{border-top:1px dashed #000;margin:5px 0}.row{display:flex;justify-content:space-between;padding:1px 0}.item-name{flex:1;padding-right:4px}.item-qty{width:24px;text-align:center}.item-price{width:55px;text-align:right}.total-row{display:flex;justify-content:space-between;font-weight:bold;font-size:14px;padding:4px 0}.footer{text-align:center;font-size:9px;margin-top:4px;color:#444}.sm{font-size:10px}</style></head><body>'+
-  '<div class="center bold" style="font-size:15px">EL MELAO DE INÉS</div>'+
-  '<div class="center sm">Orlando Jose Castillo Osorio</div>'+
-  '<div class="center sm">CIF: Z2012842W</div>'+
-  '<div class="center sm">C/ de los Panaderos, 25</div>'+
-  '<div class="center sm">28410 Manzanares Soto del Real, España</div>'+
-  '<div class="line"></div>'+
-  copyLabel+
-  '<div class="center bold">FACTURA SIMPLIFICADA</div>'+
-  '<div class="center sm">Nº '+ticketId+'</div>'+
-  '<div class="line"></div>'+
-  '<div class="row"><span>Fecha: '+fecha+'</span><span>Hora: '+hora+'</span></div>'+
-  '<div class="row"><span class="bold">'+(data.label||'')+'</span></div>'+
-  (data.camarero?'<div class="row"><span>Camarer@: '+data.camarero+'</span></div>':'')+
-  '<div class="line"></div>'+
-  '<div class="row bold"><span class="item-name">Producto</span><span class="item-qty">Ud</span><span class="item-price">Importe</span></div>'+
-  '<div class="line"></div>'+
-  items.map(function(x){return '<div class="row"><span class="item-name">'+x.n+'</span><span class="item-qty">'+x.q+'</span><span class="item-price">'+(x.p*x.q).toFixed(2)+' €</span></div>';}).join('')+
-  '<div class="line"></div>'+
-  '<div class="total-row"><span>TOTAL</span><span>'+Number(total).toFixed(2)+' €</span></div>'+
-  '<div class="line"></div>'+
-  '<div class="row sm"><span>Base imponible (10%)</span><span>'+base.toFixed(2)+' €</span></div>'+
-  '<div class="row sm"><span>IVA 10%</span><span>'+iva.toFixed(2)+' €</span></div>'+
-  '<div class="line"></div>'+
-  '<div class="footer" style="margin-top:8px">Gracias por su visita</div>'+
-  '<div class="footer">elmelaodeines.com</div>'+
-  '<script>window.onload=function(){window.print();}<\/script>'+
-  '</body></html>');
-  w.document.close();
+  if(!ticketId)ticketId=new Date().getFullYear()+'-'+String(Math.floor(Math.random()*9999)).padStart(4,'0');
+  const base=(total/1.10);
+  const iva=total-base;
+  const copyLabel=isCopy?'<div style="text-align:center;font-weight:bold;font-size:12px;border:1px solid #000;padding:3px;margin:4px 0">COPIA DE FACTURA SIMPLIFICADA</div>':'';
+  const receiptHtml=
+    '<html><head><meta charset="utf-8"><style>'+
+    '@page{size:80mm auto;margin:0}'+
+    '@media print{html,body{width:80mm;margin:0;padding:0}header,footer,.no-print{display:none}}'+
+    '*{margin:0;padding:0;box-sizing:border-box}'+
+    'body{font-family:monospace;width:72mm;padding:2mm;font-size:11px;color:#000;line-height:1.3}'+
+    '.c{text-align:center}'+
+    '.b{font-weight:bold}'+
+    '.ln{border-top:1px dashed #000;margin:3px 0}'+
+    '.r{display:flex;justify-content:space-between;padding:1px 0}'+
+    '.big{font-size:14px;font-weight:bold}'+
+    '.sm{font-size:9px}'+
+    'table{width:100%;border-collapse:collapse;font-size:11px}'+
+    'td{padding:1px 0}'+
+    '.right{text-align:right}'+
+    '.ctr{text-align:center}'+
+    '</style></head><body>'+
+    '<div class="c b" style="font-size:14px">EL MELAO DE INÉS</div>'+
+    '<div class="c sm">Orlando Jose Castillo Osorio</div>'+
+    '<div class="c sm">CIF: Z2012842W</div>'+
+    '<div class="c sm">C/ de los Panaderos, 25</div>'+
+    '<div class="c sm">28410 Manzanares Soto del Real</div>'+
+    '<div class="ln"></div>'+
+    copyLabel+
+    '<div class="c b">FACTURA SIMPLIFICADA</div>'+
+    '<div class="c sm">Nº '+ticketId+'</div>'+
+    '<div class="ln"></div>'+
+    '<div class="r"><span>Fecha: '+fecha+'</span><span>'+hora+'</span></div>'+
+    '<div class="b">'+(data.label||'')+'</div>'+
+    (data.camarero?'<div>Camarer@: '+data.camarero+'</div>':'')+
+    '<div class="ln"></div>'+
+    '<table><tr class="b"><td>Producto</td><td class="ctr" style="width:20px">Ud</td><td class="right" style="width:50px">€</td></tr></table>'+
+    '<div class="ln"></div>'+
+    '<table>'+items.map(function(x){return '<tr><td>'+x.n+'</td><td class="ctr" style="width:20px">'+x.q+'</td><td class="right" style="width:50px">'+(x.p*x.q*1.10).toFixed(2)+'</td></tr>'}).join('')+'</table>'+
+    '<div class="ln"></div>'+
+    '<div class="r big"><span>TOTAL</span><span>'+Number(total).toFixed(2)+' €</span></div>'+
+    '<div class="ln"></div>'+
+    '<div class="r sm"><span>Base imponible</span><span>'+base.toFixed(2)+' €</span></div>'+
+    '<div class="r sm"><span>IVA 10%</span><span>'+iva.toFixed(2)+' €</span></div>'+
+    '<div class="ln"></div>'+
+    '<div class="c" style="margin-top:6px">Gracias por su visita</div>'+
+    '<div class="c sm">elmelaodeines.com</div>'+
+    '<div style="height:10px"></div>'+
+    '</body></html>';
+  // Usar iframe oculto para evitar about:blank y separación de páginas
+  const iframe=document.createElement('iframe');
+  iframe.style.cssText='position:fixed;left:-9999px;width:80mm;height:0;border:none';
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(receiptHtml);
+  iframe.contentDocument.close();
+  iframe.onload=function(){
+    iframe.contentWindow.print();
+    setTimeout(function(){document.body.removeChild(iframe)},3000);
+  };
 }
 window.printTicket=printTicket;
 
