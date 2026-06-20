@@ -62,7 +62,7 @@ button,input,textarea{font:inherit;color:inherit}
 .pbk{background:none;border:none;cursor:pointer;color:#c2185b;font-size:26px;line-height:1;padding:0 6px 0 0}
 .ptit{font-size:16px;font-weight:800;flex:1}
 .ptot{font-size:15px;font-weight:800;color:#FFD700}
-.ctabs{display:flex;gap:6px;padding:10px 14px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid #2a2a2a;background:#0f0f0f;position:sticky;top:57px;z-index:4}
+.ctabs{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px;border-bottom:1px solid #2a2a2a;background:#0f0f0f;position:sticky;top:57px;z-index:4}
 .ctabs::-webkit-scrollbar{display:none}
 .ct{flex-shrink:0;padding:9px 16px;border-radius:999px;border:none;font-weight:800;font-size:13px;cursor:pointer;opacity:.4}
 .ct.on{opacity:1}
@@ -87,7 +87,7 @@ button,input,textarea{font:inherit;color:inherit}
 .nta{width:100%;padding:12px 14px;border-radius:14px;border:1.5px solid #2a2a2a;background:#1a1a1a;color:#fff;font-size:14px;resize:none}
 .nta:focus{outline:none;border-color:#c2185b}
 .nta::placeholder{color:#555}
-.sbar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px 14px;background:#1a1a1a;border-top:1px solid #2a2a2a}
+.sbar{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 14px;background:#1a1a1a;border-top:1px solid #2a2a2a}
 .sb{padding:13px 6px;border-radius:14px;border:none;font-weight:800;font-size:12px;cursor:pointer}
 .sb:active{opacity:.8}
 .s-coc{background:#c2185b;color:#fff}
@@ -228,10 +228,7 @@ function buildWaiter(){
       <div id="mlist"></div>
       <div class="nwrap"><textarea class="nta" id="nota" rows="2" placeholder="Nota para cocina / barbacoa…"></textarea></div>
       <div class="sbar">
-        <button class="sb s-coc" onclick="enviar('cocina')">🍳 Cocina</button>
-        <button class="sb s-bbq" onclick="enviar('barbacoa')">🔥 Barbacoa</button>
-        <button class="sb s-b1" onclick="enviar('barra1')">🍹 Barra 1</button>
-        <button class="sb s-b2" onclick="enviar('barra2')">🍹 Barra 2</button>
+        <button class="sb s-coc" onclick="enviarAuto()" style="grid-column:1/-1">📤 Enviar pedido</button>
         <button class="sb s-bill" onclick="pedirCuenta()">🧾 Cuenta</button>
         <button class="sb s-cls" onclick="cerrarMesa()">✓ Cerrar</button>
       </div>
@@ -280,8 +277,30 @@ function selCat(id){catAct=id;renderCatBar();renderMenuItems();}
 function renderMenuItems(){const el=$('#mlist');if(!el||!catAct)return;const e=mesaAct!=null?getE(mesaAct):null;const cat=CATS.find(c=>c.id===catAct);let h=cat?.nota?`<div style="padding:10px 16px;font-size:12px;color:#FFD700;font-weight:700">${cat.nota}</div>`:'';h+=(MENU[catAct]||[]).map(it=>{const q=e?.items.find(x=>x.id===it.id)?.q||0;return `<div class="mrow"><div class="mi"><div class="mn">${it.n}</div><div class="mp">${eurIva(it.p)}</div></div><div class="qc"><button class="qb qm" onclick="chg('${it.id}',-1)">−</button><div class="qn${q>0?' hasq':''}" id="qi-${it.id}">${q}</div><button class="qb qp" onclick="chg('${it.id}',1)">+</button></div></div>`;}).join('');el.innerHTML=h;}
 function chg(id,d){if(mesaAct===null)return;const e=getE(mesaAct);const prod=(MENU[catAct]||[]).find(x=>x.id===id);if(!prod)return;let it=e.items.find(x=>x.id===id);if(!it&&d>0)e.items.push({id,n:prod.n,p:prod.p,q:1,cat:catAct,dest:CATS.find(c=>c.id===catAct).dest});else if(it){it.q+=d;if(it.q<=0)e.items=e.items.filter(x=>x.id!==id);}e.estado='ocupada';e.total=totE(e);const el=document.getElementById('qi-'+id);if(el){const q=e.items.find(x=>x.id===id)?.q||0;el.textContent=q;el.className='qn'+(q>0?' hasq':'');}$('#ptot').textContent=eur(totE(e));emit({type:'sync',mesas,clientes});renderMesas();}
 window.chg=chg;
-function enviar(dest){if(mesaAct===null){toast('Sin mesa','','⚠️');return;}const e=getE(mesaAct);if(!e.items.length){toast('Sin platos','','⚠️');return;}emit({type:'order',dest,mesa:mesaAct,label:e.tipo==='cliente'?e.nombre:'Mesa '+e.id,camarero:camareroName,items:e.items.map(x=>({...x})),nota:$('#nota')?.value||'',total:e.total,time:new Date().toISOString()});toast('Enviado',(e.tipo==='cliente'?e.nombre:'Mesa '+e.id)+' → '+dest,'✅');}
-window.enviar=enviar;
+function enviarAuto(){
+  if(mesaAct===null){toast('Sin mesa','','⚠️');return;}
+  const e=getE(mesaAct);
+  if(!e.items.length){toast('Sin platos','','⚠️');return;}
+  const label=e.tipo==='cliente'?e.nombre:'Mesa '+e.id;
+  const nota=$('#nota')?.value||'';
+  const time=new Date().toISOString();
+  // Agrupar items por destino
+  const porDest={};
+  e.items.forEach(x=>{
+    const d=x.dest||'cocina';
+    if(!porDest[d])porDest[d]=[];
+    porDest[d].push({...x});
+  });
+  // Enviar una comanda por cada destino
+  const destinos=Object.keys(porDest);
+  destinos.forEach(dest=>{
+    const items=porDest[dest];
+    const subtotal=items.reduce((s,x)=>s+x.p*x.q*1.10,0);
+    emit({type:'order',dest,mesa:mesaAct,label,camarero:camareroName,items,nota,total:subtotal,time});
+  });
+  toast('Enviado',label+' → '+destinos.join(', '),'✅');
+}
+window.enviarAuto=enviarAuto;
 function pedirCuenta(){if(mesaAct===null)return;const e=getE(mesaAct);emit({type:'bill',dest:'caja',mesa:mesaAct,label:e.tipo==='cliente'?e.nombre:'Mesa '+e.id,camarero:camareroName,items:e.items.map(x=>({...x})),total:e.total,time:new Date().toISOString()});toast('Cuenta','Enviada a caja','🧾');}
 function cerrarMesa(){if(mesaAct===null)return;const e=getE(mesaAct);if(!confirm('¿Seguro cerrar '+(e.tipo==='cliente'?e.nombre:'Mesa '+e.id)+'?'))return;e.items=[];e.total=0;e.estado='libre';if(e.tipo==='cliente')clientes=clientes.filter(c=>c.id!==mesaAct);$('#nota').value='';emit({type:'close',mesa:mesaAct,clientes});mesaAct=null;renderMesas();goMesas();}
 function addAviso(msg){const el=$('#alist');if(!el)return;const nb=$('#nb-a');if(nb)nb.style.color='#c2185b';const empty=el.querySelector('[style*="40px"]');if(empty)el.innerHTML='';const d=document.createElement('div');d.className='cmd-card new';d.innerHTML=`<div class="cmd-top"><div class="cmd-lbl">🍽️ ${msg.label}</div><div class="cmd-time">${hhmm()}</div></div><div style="font-size:15px;color:#ADFF2F;font-weight:700;padding:4px 0">${msg.item} — listo para llevar</div>`;el.prepend(d);}
@@ -322,6 +341,12 @@ function addCajaOrder(msg){
   if(msg.camarero)cajaOrders[key].camarero=msg.camarero;
   renderControl();
 }
+function resetControl(){
+  if(!confirm('¿Limpiar control de mesas?'))return;
+  cajaOrders={};
+  renderControl();
+}
+window.resetControl=resetControl;
 function renderControl(){
   const el=document.getElementById('ctrl-list');if(!el)return;
   const keys=Object.keys(cajaOrders);
