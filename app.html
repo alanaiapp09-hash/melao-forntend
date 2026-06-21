@@ -486,7 +486,7 @@ ws.onopen=()=>setLive(true);ws.onclose=()=>{ws=null;setLive(false);setTimeout(co
 ws.addEventListener('message',ev=>{let msg;try{msg=JSON.parse(ev.data)}catch{return}
 if(msg.type==='sync'){if(Array.isArray(msg.mesas))mesas=msg.mesas;if(Array.isArray(msg.clientes))clientes=msg.clientes;if(ROL==='waiter')renderMesas();}
 if(msg.type==='order'){const destMatch={'kitchen':'cocina','barbacoa':'barbacoa','bar1':'barra1','bar2':'barra2'};const myDest=destMatch[ROL];if(myDest&&msg.dest===myDest){staCmds.unshift({...msg,t:hhmm(),st:'pend'});renderStation();vib();toast('Nueva comanda',msg.label+(msg.camarero?' · '+msg.camarero:''),'🍳');}}
-if((msg.type==='order-copy')&&ROL==='cash'){addCajaOrder(msg);}
+if((msg.type==='order-copy')&&ROL==='cash'){addCajaOrder(msg);fetch('http://localhost:3333/print-comanda',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(msg)}).catch(()=>{});}
 if(msg.type==='bill'&&ROL==='cash'){cajaCmds.unshift({...msg,t:hhmm()});renderCash();vib();toast('Cuenta',msg.label,'🧾');}
 if(msg.type==='notify'&&msg.action==='ready'&&ROL==='waiter'){const txt=msg.label+': '+msg.item+' listo';toast('Plato listo',txt,'🍽️');addAviso(msg);vib();if(Notification?.permission==='granted')new Notification('Plato listo',{body:txt}).catch(()=>{});}
 if(msg.type==='menu-update'&&msg.menu){applyMenu(msg.menu);if(ROL==='waiter'&&mesaAct!=null){renderCatBar();renderMenuItems();}}
