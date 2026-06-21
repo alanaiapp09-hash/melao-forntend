@@ -163,15 +163,14 @@ const CMAP={bebidas:'c-beb',comenzar:'c-ent',entrantes:'c-ent',parrilla:'c-bbq',
 let CATS=[],MENU={};
 let mesas=Array.from({length:10},(_,i)=>({id:i+1,tipo:'mesa',estado:'libre',items:[],total:0,orderSeq:0}));
 let clientes=[],cliSeq=1,mesaAct=null,catAct=null,ws=null,tTimer=null;
-let staCmds=[],cajaCmds=[];let splitParts=2,splitAssign={};
+let staCmds=[],cajaCmds=[];let splitSrcMesaId=null,splitN=0,splitSubIdx=0,splitSubItems=[],splitAssigned={},splitLastBill=null;
 let camareroName=localStorage.getItem('qo_camarero')||'';
 const $=s=>document.querySelector(s);
 const $$=s=>Array.from(document.querySelectorAll(s));
 const eur=v=>Number(v||0).toFixed(2).replace('.',',')+' €';
-const eurIva=v=>(Number(v||0)*1.10).toFixed(2).replace('.',',')+' €';
 const hhmm=()=>{const d=new Date();return d.getHours()+':'+String(d.getMinutes()).padStart(2,'0')};
 const getE=id=>typeof id==='number'?mesas.find(x=>x.id===id):clientes.find(x=>x.id===id);
-const totE=e=>e.items.reduce((s,x)=>s+x.p*x.q*1.10,0);
+const totE=e=>e.items.reduce((s,x)=>s+x.p*x.q,0);
 const emit=p=>{if(ws?.readyState===1)ws.send(JSON.stringify(p))};
 
 const MENU_DATA = {"restaurante":{"nombre":"El Melao de Inés","subtitulo":"restobar"},"categorias":[{"id":"bebidas","label":"Bebidas","dest":"barra1","items":[{"id":"bv1","n":"Copas de vino","p":3.5},{"id":"bv2","n":"Tinto de verano (copa)","p":4.5},{"id":"bv3","n":"Cerveza","p":3.5},{"id":"bv4","n":"Refrescos (lata)","p":2.5},{"id":"bv5","n":"Agua pequeña","p":2.0},{"id":"bv6","n":"Café / Infusión","p":2.0},{"id":"bv7","n":"Papelón con limón (vaso)","p":3.5},{"id":"bv8","n":"Papelón con limón (jarra)","p":15.0}]},{"id":"comenzar","label":"Para comenzar","dest":"cocina","items":[{"id":"cm1","n":"Salmorejo cordobés","p":8},{"id":"cm2","n":"Consomé","p":6},{"id":"cm3","n":"Espárragos con dos salsas","p":10},{"id":"cm4","n":"Sopa castellana","p":8}]},{"id":"entrantes","label":"Entrantes","dest":"cocina","items":[{"id":"en1","n":"Tequeños (6 uds)","p":8},{"id":"en2","n":"Empanadas (4 uds)","p":8},{"id":"en3","n":"Ensalada mixta","p":8},{"id":"en4","n":"Ensalada de ventresca","p":14},{"id":"en5","n":"Ensalada rusa","p":9},{"id":"en6","n":"Queso curado","p":10},{"id":"en7","n":"Croquetas de jamón (8 uds)","p":10},{"id":"en8","n":"Jamón ibérico","p":16},{"id":"en9","n":"Tortilla de patatas (ración)","p":2.5},{"id":"en10","n":"Tortilla entera","p":14},{"id":"en11","n":"Patatas bravas","p":8},{"id":"en12","n":"Gambas al ajillo","p":12},{"id":"en13","n":"Pulpo a la gallega","p":18}]},{"id":"parrilla","label":"Parrilla","dest":"barbacoa","items":[{"id":"pa1","n":"Carne en Vara (1 Kg)","p":60},{"id":"pa2","n":"Carne en Vara (½ Kg)","p":30},{"id":"pa3","n":"Carne en Vara (¼ Kg)","p":15},{"id":"pa4","n":"Pollo en Vara (1 Kg)","p":18},{"id":"pa5","n":"Pollo en Vara (½ Kg)","p":9},{"id":"pa6","n":"Pollo en Vara (¼ Kg)","p":4.5}]},{"id":"principales","label":"Principales","dest":"cocina","items":[{"id":"pr1","n":"Merluza a la romana","p":16},{"id":"pr2","n":"Entrecot a la parrilla (300 gr)","p":22},{"id":"pr3","n":"Cachopo de ternera","p":22},{"id":"pr4","n":"Cachopo de pollo","p":18},{"id":"pr5","n":"Cachopo de cerdo","p":18},{"id":"pr6","n":"Pollo al ajillo","p":14},{"id":"pr7","n":"Pechuga de pollo a la plancha","p":11}]},{"id":"criollas","label":"Criollas","dest":"cocina","items":[{"id":"ar1","n":"Arepa de ternera mechada","p":9},{"id":"ar2","n":"Arepa reina pepiada","p":10},{"id":"ar3","n":"Arepa pollo desmechado","p":9},{"id":"ar4","n":"Arepa pabellón","p":10},{"id":"ca1","n":"Cachapa con queso","p":12},{"id":"ca2","n":"Cachapa con queso y cochino frito","p":15},{"id":"cr1","n":"Patacones","p":15}]},{"id":"fastfood","label":"Fast Food","dest":"cocina","items":[{"id":"hb1","n":"Mi Burger Clásica","p":10},{"id":"hb2","n":"Mi Burger BBQ","p":12},{"id":"hb3","n":"Mi Burger Doble Carne","p":14},{"id":"hb4","n":"Mi Burger El Melao","p":16},{"id":"fp1","n":"Pizza Margarita","p":10},{"id":"fp2","n":"Pizza Jamón y queso","p":12},{"id":"fp3","n":"Pizza Diavola","p":12},{"id":"fp4","n":"Pizza Barbacoa","p":14},{"id":"bo1","n":"Bocadillo Calamares","p":8},{"id":"bo2","n":"Bocadillo Lomo","p":8},{"id":"bo3","n":"Bocadillo Jamón y queso","p":7},{"id":"bo4","n":"Bocadillo Bacon y queso","p":8}]},{"id":"kids","label":"Kids","dest":"cocina","items":[{"id":"ki1","n":"Hamburguesa con queso y bacon","p":9},{"id":"ki2","n":"Fingers de pollo (6 uds)","p":8},{"id":"ki3","n":"Tortilla de jamón y queso (rac.)","p":3},{"id":"ki4","n":"Lomo de cerdo a la plancha","p":7},{"id":"ki5","n":"Pasta bolognesa","p":7},{"id":"ki6","n":"Pechuga de pollo a la plancha","p":8}]},{"id":"postres","label":"Postres","dest":"cocina","items":[{"id":"po1","n":"Tres leches","p":6},{"id":"po2","n":"Red Velvet","p":5},{"id":"po3","n":"De frutas","p":5},{"id":"po4","n":"Helado","p":4},{"id":"po5","n":"Tarta de chocolate","p":5},{"id":"po6","n":"Mousse de limón","p":5}]},{"id":"guarniciones","label":"Guarniciones","dest":"barbacoa","items":[{"id":"gu1","n":"Arroz blanco","p":3},{"id":"gu2","n":"Patatas fritas","p":3},{"id":"gu3","n":"Papas al vapor","p":3},{"id":"gu4","n":"Chorizo (1 ud)","p":9.5},{"id":"gu5","n":"Morcilla (1 ud)","p":8.5},{"id":"gu6","n":"Yuca sancochada (ración)","p":5}]}]};
@@ -281,7 +280,7 @@ function quitarMesa(){if(mesas.length<=1)return;const u=mesas[mesas.length-1];if
 window.agregarMesa=agregarMesa;window.quitarMesa=quitarMesa;
 function renderCatBar(){const el=$('#ctabs');if(!el)return;el.innerHTML=CATS.map(c=>`<button class="ct ${c.cls} ${catAct===c.id?'on':''}" onclick="selCat('${c.id}')">${c.label}</button>`).join('');}
 function selCat(id){catAct=id;renderCatBar();renderMenuItems();}
-function renderMenuItems(){const el=$('#mlist');if(!el||!catAct)return;const e=mesaAct!=null?getE(mesaAct):null;const cat=CATS.find(c=>c.id===catAct);let h=cat?.nota?`<div style="padding:10px 16px;font-size:12px;color:#FFD700;font-weight:700">${cat.nota}</div>`:'';h+=(MENU[catAct]||[]).map(it=>{const item=e?.items.find(x=>x.id===it.id);const q=item?.q||0;const qSent=item?.qSent||0;const qNew=Math.max(0,q-qSent);return `<div class="mrow"><div class="mi"><div class="mn">${it.n}</div><div class="mp">${eurIva(it.p)}</div></div><div class="qc"><button class="qb qm" onclick="chg('${it.id}',-1)">−</button><div style="text-align:center"><div class="qn${qNew>0?' hasq':''}" id="qi-${it.id}">${q||''}</div>${qSent>0?`<div style="font-size:9px;color:#41d36f;margin-top:1px">✓${qSent}</div>`:''}</div><button class="qb qp" onclick="chg('${it.id}',1)">+</button></div></div>`;}).join('');el.innerHTML=h;}
+function renderMenuItems(){const el=$('#mlist');if(!el||!catAct)return;const e=mesaAct!=null?getE(mesaAct):null;const cat=CATS.find(c=>c.id===catAct);let h=cat?.nota?`<div style="padding:10px 16px;font-size:12px;color:#FFD700;font-weight:700">${cat.nota}</div>`:'';h+=(MENU[catAct]||[]).map(it=>{const item=e?.items.find(x=>x.id===it.id);const q=item?.q||0;const qSent=item?.qSent||0;const qNew=Math.max(0,q-qSent);return `<div class="mrow"><div class="mi"><div class="mn">${it.n}</div><div class="mp">${eur(it.p)}</div></div><div class="qc"><button class="qb qm" onclick="chg('${it.id}',-1)">−</button><div style="text-align:center"><div class="qn${qNew>0?' hasq':''}" id="qi-${it.id}">${q||''}</div>${qSent>0?`<div style="font-size:9px;color:#41d36f;margin-top:1px">✓${qSent}</div>`:''}</div><button class="qb qp" onclick="chg('${it.id}',1)">+</button></div></div>`;}).join('');el.innerHTML=h;}
 function chg(id,d){if(mesaAct===null)return;const e=getE(mesaAct);const prod=(MENU[catAct]||[]).find(x=>x.id===id);if(!prod)return;let it=e.items.find(x=>x.id===id);if(!it&&d>0)e.items.push({id,n:prod.n,p:prod.p,q:1,cat:catAct,dest:CATS.find(c=>c.id===catAct).dest,qSent:0});else if(it){it.q+=d;if(it.q<=0)e.items=e.items.filter(x=>x.id!==id);else if((it.qSent||0)>it.q)it.qSent=it.q;}e.estado='ocupada';e.total=totE(e);const el=document.getElementById('qi-'+id);if(el){const itm=e.items.find(x=>x.id===id);const q=itm?.q||0;const qNew=Math.max(0,q-(itm?.qSent||0));el.textContent=q||'';el.className='qn'+(qNew>0?' hasq':'');}$('#ptot').textContent=eur(totE(e));emit({type:'sync',mesas,clientes});renderMesas();}
 window.chg=chg;
 function enviarAuto(){
@@ -305,7 +304,7 @@ function enviarAuto(){
   const destinos=Object.keys(porDest);
   destinos.forEach(dest=>{
     const items=porDest[dest];
-    const subtotal=items.reduce((s,x)=>s+x.p*x.q*1.10,0);
+    const subtotal=items.reduce((s,x)=>s+x.p*x.q,0);
     emit({type:'order',dest,mesa:mesaAct,label,orderNum,camarero:camareroName,items,nota,total:subtotal,time});
   });
   nuevos.forEach(x=>{x.qSent=x.q;});
@@ -350,7 +349,7 @@ function addCajaOrder(msg){
     if(exist)exist.q+=(it.q||1);
     else cajaOrders[key].items.push({...it});
   });
-  cajaOrders[key].total=cajaOrders[key].items.reduce((s,x)=>s+(x.p||0)*(x.q||1)*1.10,0);
+  cajaOrders[key].total=cajaOrders[key].items.reduce((s,x)=>s+(x.p||0)*(x.q||1),0);
   if(msg.camarero)cajaOrders[key].camarero=msg.camarero;
   renderControl();
 }
@@ -364,13 +363,39 @@ function renderControl(){
   const el=document.getElementById('ctrl-list');if(!el)return;
   const keys=Object.keys(cajaOrders);
   if(!keys.length){el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#555">Sin pedidos</div>';return;}
-  el.innerHTML=keys.map(k=>{const o=cajaOrders[k];return `<div class="xcard"><div class="xh">${o.label} ${o.camarero?'· 👤 '+o.camarero:''}</div>${o.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${(x.p*x.q).toFixed(2).replace('.',',')} €</span></div>`).join('')}<div class="xtot"><span>Total acumulado</span><span>${o.total.toFixed(2).replace('.',',')} €</span></div>
-<button style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1.5px solid #00CFFF;background:transparent;color:#00CFFF;font-weight:800;font-size:13px;cursor:pointer" onclick="printTicket(cajaOrders['${k}'])">🖨️ Imprimir</button></div>`;}).join('');
+  el.innerHTML=keys.map(k=>{
+    const o=cajaOrders[k];
+    const sub=o.total||0;const iva=sub*0.10;const tot=sub*1.10;
+    return `<div class="xcard"><div class="xh">${o.label} ${o.camarero?'· 👤 '+o.camarero:''}</div>${o.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${eur(x.p*x.q)}</span></div>`).join('')}
+<div style="margin-top:8px;padding:8px;background:#111;border-radius:8px"><div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>Subtotal (sin IVA)</span><span>${eur(sub)}</span></div><div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>IVA 10%</span><span>${eur(iva)}</span></div></div>
+<div class="xtot"><span>TOTAL acumulado</span><span>${eur(tot)}</span></div>
+<button style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1.5px solid #00CFFF;background:transparent;color:#00CFFF;font-weight:800;font-size:13px;cursor:pointer" onclick="printTicket(cajaOrders['${k}'])">🖨️ Imprimir</button></div>`;
+  }).join('');
 }
-function renderCash(){const el=$('#cl'),badge=$('#cb');if(!el)return;if(badge)badge.textContent=cajaCmds.length?` · ${cajaCmds.length}`:'';if(!cajaCmds.length){el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#555">Sin cuentas</div>';return;}
-el.innerHTML=cajaCmds.map((c,i)=>`<div class="xcard"><div class="xh">🧾 ${c.label} ${c.camarero?'· 👤 '+c.camarero:''} <span style="font-size:12px;color:#888">${c.t}</span></div>${c.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${eur(x.p*x.q)}</span></div>`).join('')}<div class="xtot"><span>Total</span><span>${eur(c.total)}</span></div>${c.nota?`<div style="font-size:12px;color:#c2185b;margin-top:6px">⚠️ ${c.nota}</div>`:''}<div style="display:flex;gap:6px;margin-top:8px"><button style="flex:1;padding:10px;border-radius:12px;border:1.5px solid #00CFFF;background:transparent;color:#00CFFF;font-weight:800;font-size:12px;cursor:pointer" onclick="printTicket(cajaCmds[${i}],false)">🖨️ Ticket</button><button style="flex:1;padding:10px;border-radius:12px;border:1.5px solid #888;background:transparent;color:#888;font-weight:800;font-size:12px;cursor:pointer" onclick="printTicket(cajaCmds[${i}],true)">📋 Copia</button></div>
+function renderCash(){
+  const el=$('#cl'),badge=$('#cb');if(!el)return;
+  if(badge)badge.textContent=cajaCmds.length?` · ${cajaCmds.length}`:'';
+  if(!cajaCmds.length){el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#555">Sin cuentas</div>';return;}
+  el.innerHTML=cajaCmds.map((c,i)=>{
+    const sub=c.total||0;const iva=sub*0.10;const tot=sub*1.10;
+    return `<div class="xcard">
+      <div class="xh">🧾 ${c.label} ${c.camarero?'· 👤 '+c.camarero:''} <span style="font-size:12px;color:#888">${c.t}</span></div>
+      ${c.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${eur(x.p*x.q)}</span></div>`).join('')}
+      <div style="margin-top:8px;padding:8px;background:#111;border-radius:8px">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>Subtotal (sin IVA)</span><span>${eur(sub)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>IVA 10%</span><span>${eur(iva)}</span></div>
+      </div>
+      <div class="xtot"><span>TOTAL</span><span>${eur(tot)}</span></div>
+      ${c.nota?`<div style="font-size:12px;color:#c2185b;margin-top:6px">⚠️ ${c.nota}</div>`:''}
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button style="flex:1;padding:10px;border-radius:12px;border:1.5px solid #00CFFF;background:transparent;color:#00CFFF;font-weight:800;font-size:12px;cursor:pointer" onclick="printTicket(cajaCmds[${i}],false)">🖨️ Ticket</button>
+        <button style="flex:1;padding:10px;border-radius:12px;border:1.5px solid #888;background:transparent;color:#888;font-weight:800;font-size:12px;cursor:pointer" onclick="printTicket(cajaCmds[${i}],true)">📋 Copia</button>
+      </div>
       <button style="width:100%;margin-top:6px;padding:10px;border-radius:12px;border:1.5px solid #ADFF2F;background:transparent;color:#ADFF2F;font-weight:800;font-size:12px;cursor:pointer" onclick="emailTicket(cajaCmds[${i}])">📧 Enviar factura por email</button>
-      <button class="xcls" onclick="cajaCobrar(${i})">✓ Cobrado — cerrar mesa</button></div>`).join('');}
+      <button class="xcls" onclick="cajaCobrar(${i})">✓ Cobrado — cerrar mesa</button>
+    </div>`;
+  }).join('');
+}
 function cajaCobrar(i){const c=cajaCmds[i];if(!confirm('¿Seguro cerrar '+c.label+'?'))return;delete cajaOrders[String(c.mesa)];renderControl();emit({type:'close',mesa:c.mesa,clientes:[]});cajaCmds.splice(i,1);renderCash();toast('Cerrada',c.label+' cobrada','✅');}
 window.cajaCobrar=cajaCobrar;
 
@@ -383,10 +408,13 @@ async function printTicket(data, isCopy){
     if(r.ok){const d=await r.json();ticketId=d.id;}
   }catch(e){}
   if(!ticketId)ticketId=new Date().getFullYear()+'-'+String(Math.floor(Math.random()*9999)).padStart(4,'0');
+  const subtotal=data.total||0;
+  const iva=subtotal*0.10;
+  const totalConIva=subtotal*1.10;
   try{
     const r=await fetch('http://localhost:3333/print',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({items:data.items,total:data.total,label:data.label,camarero:data.camarero,ticketId:ticketId,isCopy:!!isCopy})
+      body:JSON.stringify({items:data.items,subtotal,iva,total:totalConIva,label:data.label,camarero:data.camarero,ticketId,isCopy:!!isCopy})
     });
     if(r.ok) toast('Impreso',data.label+' · Nº '+ticketId,'🖨️');
     else toast('Error','No se pudo imprimir','⚠️');
@@ -408,8 +436,7 @@ async function emailTicket(data){
     if(r.ok){const d=await r.json();ticketId=d.id;}
   }catch(e){}
   if(!ticketId)ticketId=new Date().getFullYear()+'-'+String(Math.floor(Math.random()*9999)).padStart(4,'0');
-  const base=(total/1.10);
-  const iva=total-base;
+  const base=total;const iva=base*0.10;const totalConIva=base*1.10;
   const ticketHtml=`<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;color:#333">
 <div style="text-align:center;margin-bottom:16px">
 <div style="font-size:20px;font-weight:bold">EL MELAO DE INÉS</div>
@@ -431,7 +458,7 @@ ${data.camarero?'<div style="font-size:12px;color:#666">Camarer@: '+data.camarer
 ${items.map(x=>'<tr style="border-bottom:1px solid #eee"><td style="padding:4px 0">'+x.n+'</td><td style="text-align:center">'+x.q+'</td><td style="text-align:right">'+(x.p*x.q).toFixed(2)+' €</td></tr>').join('')}
 </table>
 <hr style="border:1px dashed #ccc">
-<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;margin:10px 0"><span>TOTAL</span><span>${Number(total).toFixed(2)} €</span></div>
+<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;margin:10px 0"><span>TOTAL</span><span>${Number(totalConIva).toFixed(2)} €</span></div>
 <hr style="border:1px dashed #ccc">
 <div style="font-size:11px;color:#666;margin:6px 0"><div style="display:flex;justify-content:space-between"><span>Base imponible (10%)</span><span>${base.toFixed(2)} €</span></div>
 <div style="display:flex;justify-content:space-between"><span>IVA 10%</span><span>${iva.toFixed(2)} €</span></div></div>
@@ -473,121 +500,169 @@ document.addEventListener('click',()=>{if(Notification?.permission==='default')N
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 
 // ══ BILL MODAL ════════════════════════════════════════════════════════════════
-const PART_COLORS=['#c2185b','#00CFFF','#ADFF2F','#FF6B35','#D946EF','#FFD700'];
+const SPLIT_SUF=['A','B','C','D','E','F'];
+
 function showBillModal(e){
-  splitAssign={};splitParts=2;
-  const label=e.tipo==='cliente'?e.nombre:'Mesa '+e.id;
+  splitSrcMesaId=mesaAct;splitN=0;splitSubIdx=0;splitSubItems=[];splitAssigned={};splitLastBill=null;
   let m=document.getElementById('bill-modal');
   if(!m){m=document.createElement('div');m.id='bill-modal';document.body.appendChild(m);}
   m.className='bm-open';
+  renderBmChoice();
+}
+function getBmEl(){return document.getElementById('bill-modal');}
+function getBmLabel(){const e=getE(splitSrcMesaId);return e?(e.tipo==='cliente'?e.nombre:'Mesa '+e.id):'';}
+
+function renderBmChoice(){
+  const m=getBmEl();if(!m)return;
+  const label=getBmLabel();
   m.innerHTML=`<div class="bm-wrap"><div class="bm-box">
     <div class="bm-title">🧾 ${label}</div>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <button onclick="billCompleta()" style="flex:1;padding:14px;border-radius:14px;border:none;background:#D946EF;color:#fff;font-weight:800;font-size:14px;cursor:pointer">Cuenta completa</button>
-      <button onclick="billDividir()" style="flex:1;padding:14px;border-radius:14px;border:1.5px solid #D946EF;background:transparent;color:#D946EF;font-weight:800;font-size:14px;cursor:pointer">Dividir cuenta</button>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">
+      <button onclick="billCompleta()" style="padding:16px;border-radius:14px;border:none;background:#D946EF;color:#fff;font-weight:800;font-size:15px;cursor:pointer">📄 Cuenta completa</button>
+      <button onclick="renderBmNparts()" style="padding:16px;border-radius:14px;border:1.5px solid #D946EF;background:transparent;color:#D946EF;font-weight:800;font-size:15px;cursor:pointer">✂️ Dividir cuenta</button>
     </div>
-    <div id="bm-split" style="display:none">
-      <div style="margin-bottom:12px">
-        <div style="font-size:12px;color:#888;margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.05em">¿En cuántas partes?</div>
-        <div style="display:flex;gap:6px">${[2,3,4,5,6].map(n=>`<button id="sp-${n}" onclick="setSplitParts(${n})" style="flex:1;padding:10px;border-radius:10px;border:1.5px solid #2a2a2a;background:#2a2a2a;color:#888;font-weight:800;cursor:pointer;font-size:15px">${n}</button>`).join('')}</div>
-      </div>
-      <div id="bm-items"></div>
-      <div id="bm-totals"></div>
-    </div>
-    <button onclick="closeBillModal()" style="width:100%;margin-top:10px;padding:12px;border-radius:12px;border:1.5px solid #444;background:transparent;color:#888;font-weight:800;cursor:pointer">Cancelar</button>
+    <button onclick="closeBillModal()" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #444;background:transparent;color:#888;font-weight:800;cursor:pointer">Cancelar</button>
   </div></div>`;
 }
+window.renderBmChoice=renderBmChoice;
+
+function renderBmNparts(){
+  const m=getBmEl();if(!m)return;
+  const label=getBmLabel();
+  m.innerHTML=`<div class="bm-wrap"><div class="bm-box">
+    <div class="bm-title">✂️ Dividir ${label}</div>
+    <div style="font-size:13px;color:#888;margin-bottom:14px;font-weight:600">¿En cuántas partes?</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px">
+      ${[2,3,4,5,6].map(n=>`<button onclick="startSplit(${n})" style="padding:14px 0;border-radius:12px;border:1.5px solid #444;background:#222;color:#ccc;font-weight:800;font-size:20px;cursor:pointer">${n}</button>`).join('')}
+    </div>
+    <button onclick="renderBmChoice()" style="width:100%;padding:12px;border-radius:12px;border:1.5px solid #444;background:transparent;color:#888;font-weight:800;cursor:pointer">← Atrás</button>
+  </div></div>`;
+}
+window.renderBmNparts=renderBmNparts;
+
+function startSplit(n){
+  splitN=n;splitSubIdx=0;
+  splitSubItems=Array.from({length:n},()=>({}));
+  splitAssigned={};
+  renderBmSub();
+}
+window.startSplit=startSplit;
+
+function subAvailItems(){
+  const e=getE(splitSrcMesaId);if(!e)return[];
+  return e.items.map(it=>{
+    const maxQ=Math.max(0,it.q-(splitAssigned[it.id]||0));
+    return {...it,maxQ,curQ:splitSubItems[splitSubIdx][it.id]||0};
+  }).filter(it=>it.maxQ>0);
+}
+function subTotal(){
+  const e=getE(splitSrcMesaId);if(!e)return 0;
+  return e.items.reduce((s,it)=>s+it.p*(splitSubItems[splitSubIdx][it.id]||0),0);
+}
+
+function renderBmSub(){
+  const m=getBmEl();if(!m)return;
+  const label=getBmLabel();
+  const suf=SPLIT_SUF[splitSubIdx];
+  const subLabel=label+'-'+suf;
+  const avail=subAvailItems();
+  const sub=subTotal();
+  m.innerHTML=`<div class="bm-wrap"><div class="bm-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-size:17px;font-weight:800">📋 ${subLabel}</div>
+      <div id="bm-sub-tot" style="font-size:16px;font-weight:800;color:#FFD700">${eur(sub)}</div>
+    </div>
+    <div style="font-size:12px;color:#888;margin-bottom:14px">Parte ${splitSubIdx+1} de ${splitN} · Toca + para añadir items</div>
+    ${avail.length===0
+      ?`<div style="padding:20px;text-align:center;color:#555;font-size:14px">No hay items disponibles</div>`
+      :`<div>${avail.map(it=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #222">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:600">${it.n}</div>
+            <div style="font-size:11px;color:#888">Disponible: ${it.maxQ} · ${eur(it.p)} c/u</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+            <button onclick="subChg('${it.id}',-1,${it.maxQ})" style="width:36px;height:36px;border-radius:50%;border:none;background:#ff5b5b;color:#fff;font-size:20px;font-weight:900;cursor:pointer">−</button>
+            <div id="sq-${it.id}" style="min-width:28px;text-align:center;font-size:17px;font-weight:900;color:${it.curQ>0?'#ADFF2F':'#555'}">${it.curQ}</div>
+            <button onclick="subChg('${it.id}',1,${it.maxQ})" style="width:36px;height:36px;border-radius:50%;border:none;background:#ADFF2F;color:#0d1800;font-size:20px;font-weight:900;cursor:pointer">+</button>
+          </div>
+        </div>`).join('')}</div>`
+    }
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px">
+      <button id="bm-sub-btn" onclick="confirmarSub()" ${sub===0?'disabled':''} style="padding:14px;border-radius:14px;border:none;background:#D946EF;color:#fff;font-weight:800;font-size:14px;cursor:${sub===0?'not-allowed':'pointer'};opacity:${sub===0?'.4':'1'}">🧾 Pedir cuenta ${subLabel}</button>
+      <button onclick="closeBillModal()" style="padding:12px;border-radius:12px;border:1.5px solid #444;background:transparent;color:#888;font-weight:800;cursor:pointer">Cancelar división</button>
+    </div>
+  </div></div>`;
+}
+
+function subChg(id,d,maxQ){
+  const cur=splitSubItems[splitSubIdx][id]||0;
+  const nv=Math.max(0,Math.min(maxQ,cur+d));
+  splitSubItems[splitSubIdx][id]=nv;
+  const el=document.getElementById('sq-'+id);
+  if(el){el.textContent=nv;el.style.color=nv>0?'#ADFF2F':'#555';}
+  const sub=subTotal();
+  const tEl=document.getElementById('bm-sub-tot');if(tEl)tEl.textContent=eur(sub);
+  const btn=document.getElementById('bm-sub-btn');
+  if(btn){btn.disabled=sub===0;btn.style.opacity=sub===0?'.4':'1';btn.style.cursor=sub===0?'not-allowed':'pointer';}
+}
+window.subChg=subChg;
+
+function confirmarSub(){
+  const e=getE(splitSrcMesaId);if(!e)return;
+  const suf=SPLIT_SUF[splitSubIdx];
+  const subLabel=getBmLabel()+'-'+suf;
+  const currentMap=splitSubItems[splitSubIdx];
+  const items=e.items.filter(it=>(currentMap[it.id]||0)>0).map(it=>({...it,q:currentMap[it.id]}));
+  if(!items.length)return;
+  const subtotal=items.reduce((s,x)=>s+x.p*x.q,0);
+  items.forEach(it=>{splitAssigned[it.id]=(splitAssigned[it.id]||0)+it.q;});
+  splitLastBill={items,total:subtotal,label:subLabel,camarero:camareroName};
+  emit({type:'bill',dest:'caja',mesa:splitSrcMesaId,label:subLabel,camarero:camareroName,items,total:subtotal,time:new Date().toISOString()});
+  const isLast=splitSubIdx>=splitN-1;
+  const nextLabel=isLast?'':(getBmLabel()+'-'+SPLIT_SUF[splitSubIdx+1]);
+  const m=getBmEl();if(!m)return;
+  m.innerHTML=`<div class="bm-wrap"><div class="bm-box">
+    <div style="text-align:center;padding:16px 0">
+      <div style="font-size:36px;margin-bottom:8px">✅</div>
+      <div style="font-size:17px;font-weight:800;margin-bottom:4px">${subLabel}</div>
+      <div style="font-size:13px;color:#888;margin-bottom:12px">Enviada a caja</div>
+      <div style="background:#111;border-radius:10px;padding:12px;text-align:left">
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>Subtotal (sin IVA)</span><span>${eur(subtotal)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>IVA 10%</span><span>${eur(subtotal*0.10)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:#FFD700;padding:6px 0 0"><span>TOTAL</span><span>${eur(subtotal*1.10)}</span></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
+      <button onclick="printSubcuenta()" style="padding:13px;border-radius:14px;border:1.5px solid #00CFFF;background:transparent;color:#00CFFF;font-weight:800;font-size:14px;cursor:pointer">🖨️ Imprimir ${subLabel}</button>
+      ${isLast
+        ?`<button onclick="closeBillModal()" style="padding:13px;border-radius:14px;border:none;background:#41d36f;color:#0d1800;font-weight:800;font-size:14px;cursor:pointer">✅ División completada</button>`
+        :`<button onclick="goNextSub()" style="padding:13px;border-radius:14px;border:none;background:#D946EF;color:#fff;font-weight:800;font-size:14px;cursor:pointer">→ Continuar con ${nextLabel}</button>`
+      }
+      <button onclick="closeBillModal()" style="padding:11px;border-radius:12px;border:1.5px solid #444;background:transparent;color:#888;font-weight:800;cursor:pointer">Cerrar</button>
+    </div>
+  </div></div>`;
+}
+window.confirmarSub=confirmarSub;
+
+function printSubcuenta(){if(splitLastBill)printTicket(splitLastBill);}
+window.printSubcuenta=printSubcuenta;
+
+function goNextSub(){splitSubIdx++;if(splitSubIdx>=splitN){closeBillModal();return;}renderBmSub();}
+window.goNextSub=goNextSub;
+
 function billCompleta(){
-  const e=getE(mesaAct);
+  const e=getE(splitSrcMesaId||mesaAct);if(!e)return;
   const label=e.tipo==='cliente'?e.nombre:'Mesa '+e.id;
-  emit({type:'bill',dest:'caja',mesa:mesaAct,label,camarero:camareroName,items:e.items.map(x=>({...x})),total:totE(e),time:new Date().toISOString()});
-  closeBillModal();
-  toast('Cuenta','Enviada a caja','🧾');
-}
-function billDividir(){
-  document.getElementById('bm-split').style.display='block';
-  setSplitParts(2);
-}
-function setSplitParts(n){
-  splitParts=n;
-  [2,3,4,5,6].forEach(k=>{
-    const b=document.getElementById('sp-'+k);
-    if(b){b.style.background=k===n?'#D946EF':'#2a2a2a';b.style.color=k===n?'#fff':'#888';b.style.borderColor=k===n?'#D946EF':'#2a2a2a';}
-  });
-  Object.keys(splitAssign).forEach(id=>{if((splitAssign[id]||0)>n)splitAssign[id]=0;});
-  renderSplitItems();
-}
-function toggleSplitItem(id){
-  const cur=splitAssign[id]||0;
-  splitAssign[id]=cur>=splitParts?0:cur+1;
-  renderSplitItems();
-}
-function renderSplitItems(){
-  const e=getE(mesaAct);
-  const el=document.getElementById('bm-items');if(!el)return;
-  el.innerHTML=e.items.map(it=>{
-    const part=splitAssign[it.id]||0;
-    const col=part?PART_COLORS[part-1]:'#444';
-    const lbl=part?'P'+part:'—';
-    return `<div onclick="toggleSplitItem('${it.id}')" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:1.5px solid ${part?col:'#2a2a2a'};margin-bottom:7px;cursor:pointer;background:${part?'rgba(255,255,255,.04)':'transparent'}">
-      <div style="width:34px;height:34px;border-radius:50%;border:2px solid ${col};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${col};flex-shrink:0">${lbl}</div>
-      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">${it.q}× ${it.n}</div></div>
-      <div style="font-size:13px;font-weight:800;color:#FFD700">${eurIva(it.p*it.q)}</div>
-    </div>`;
-  }).join('');
-  renderSplitTotals();
-}
-function renderSplitTotals(){
-  const e=getE(mesaAct);
-  const el=document.getElementById('bm-totals');if(!el)return;
-  const unassigned=e.items.filter(it=>!(splitAssign[it.id]||0));
-  const uTotal=unassigned.reduce((s,x)=>s+x.p*x.q*1.10,0);
-  let html='<div style="border-top:1px solid #2a2a2a;padding-top:10px;margin-top:4px">';
-  for(let i=1;i<=splitParts;i++){
-    const items=e.items.filter(it=>(splitAssign[it.id]||0)===i);
-    const sub=items.reduce((s,x)=>s+x.p*x.q*1.10,0);
-    html+=`<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e1e1e">
-      <div style="display:flex;align-items:center;gap:8px">
-        <div style="width:26px;height:26px;border-radius:50%;border:2px solid ${PART_COLORS[i-1]};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:${PART_COLORS[i-1]}">P${i}</div>
-        <span style="font-size:13px;color:#aaa">${items.length} plato${items.length!==1?'s':''}</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:15px;font-weight:800;color:#FFD700">${sub.toFixed(2).replace('.',',')} €</span>
-        <button onclick="printParte(${i});event.stopPropagation()" style="padding:5px 10px;border-radius:8px;border:1.5px solid #00CFFF;background:transparent;color:#00CFFF;font-size:11px;font-weight:800;cursor:pointer">🖨️</button>
-      </div>
-    </div>`;
-  }
-  if(uTotal>0){
-    html+=`<div style="padding:8px 0;font-size:13px;color:#888">Sin asignar: <span style="color:#ff5b5b;font-weight:700">${uTotal.toFixed(2).replace('.',',')} €</span></div>`;
-    html+=`<button disabled style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:#D946EF;color:#fff;font-weight:800;font-size:14px;cursor:not-allowed;opacity:.4">Enviar cuenta a caja</button>`;
-  } else {
-    html+=`<button onclick="sendSplitToCaja()" style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:#D946EF;color:#fff;font-weight:800;font-size:14px;cursor:pointer">Enviar cuenta a caja</button>`;
-  }
-  html+='</div>';
-  el.innerHTML=html;
-}
-async function printParte(part){
-  const e=getE(mesaAct);
-  const label=(e.tipo==='cliente'?e.nombre:'Mesa '+e.id)+' · Parte '+part;
-  const items=e.items.filter(it=>(splitAssign[it.id]||0)===part);
-  const total=items.reduce((s,x)=>s+x.p*x.q*1.10,0);
-  await printTicket({items,total,label,camarero:camareroName});
-}
-function sendSplitToCaja(){
-  const e=getE(mesaAct);
-  const label=e.tipo==='cliente'?e.nombre:'Mesa '+e.id;
-  emit({type:'bill',dest:'caja',mesa:mesaAct,label,camarero:camareroName,items:e.items.map(x=>({...x})),total:totE(e),time:new Date().toISOString()});
+  const subtotal=totE(e);
+  emit({type:'bill',dest:'caja',mesa:splitSrcMesaId||mesaAct,label,camarero:camareroName,items:e.items.map(x=>({...x})),total:subtotal,time:new Date().toISOString()});
   closeBillModal();
   toast('Cuenta','Enviada a caja','🧾');
 }
 function closeBillModal(){
-  const m=document.getElementById('bill-modal');
-  if(m)m.className='';
-  splitAssign={};
+  const m=document.getElementById('bill-modal');if(m)m.className='';
+  splitSrcMesaId=null;splitN=0;splitSubIdx=0;splitSubItems=[];splitAssigned={};splitLastBill=null;
 }
-window.billCompleta=billCompleta;window.billDividir=billDividir;window.setSplitParts=setSplitParts;
-window.toggleSplitItem=toggleSplitItem;window.printParte=printParte;
-window.sendSplitToCaja=sendSplitToCaja;window.closeBillModal=closeBillModal;
+window.billCompleta=billCompleta;window.closeBillModal=closeBillModal;
 
 boot();
 </script>
