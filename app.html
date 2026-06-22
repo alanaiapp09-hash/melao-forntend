@@ -173,7 +173,7 @@ const getE=id=>typeof id==='number'?mesas.find(x=>x.id===id):clientes.find(x=>x.
 const totE=e=>e.items.reduce((s,x)=>s+x.p*x.q,0);
 const emit=p=>{if(ws?.readyState===1)ws.send(JSON.stringify(p))};
 
-const MENU_DATA = {"restaurante":{"nombre":"El Melao de Inés","subtitulo":"restobar"},"categorias":[{"id":"bebidas","label":"Bebidas","dest":"barra1","items":[{"id":"bv1","n":"Copas de vino","p":3.5},{"id":"bv2","n":"Tinto de verano (copa)","p":4.5},{"id":"bv3","n":"Caña","p":2.2},{"id":"bv4","n":"Doble","p":3.2},{"id":"bv5","n":"Cerveza Tercio","p":3.2},{"id":"bv6","n":"Cerveza Corona","p":4},{"id":"bv7","n":"Cerveza Sin Gluten","p":3.5},{"id":"bv8","n":"Cerveza 0.0","p":3.2},{"id":"bv9","n":"Cerveza 0.0 Tostada","p":3.2},{"id":"bv10","n":"Refrescos (lata)","p":2.5},{"id":"bv11","n":"Agua pequeña","p":2},{"id":"bv12","n":"Agua grande","p":3.5},{"id":"bv13","n":"Café / Infusión","p":2},{"id":"bv14","n":"Papelón con limón (vaso)","p":3.5},{"id":"bv15","n":"Papelón con limón (jarra)","p":15}]},{"id":"entrantes","label":"Entrantes","dest":"cocina","items":[{"id":"en1","n":"Ensalada Mixta","p":12},{"id":"en2","n":"Ensalada César con pollo","p":12.5},{"id":"en3","n":"Vegetales a la Brasa","p":13},{"id":"en4","n":"Ensalada Rusa","p":11},{"id":"en5","n":"Ensalada Melao","p":12},{"id":"en6","n":"Alitas de Pollo (8 uds)","p":9},{"id":"en7","n":"Croquetas de jamón (8 uds)","p":10},{"id":"en8","n":"Calamares","p":12},{"id":"en9","n":"Samburiño","p":15},{"id":"en10","n":"Gambas al ajillo","p":12},{"id":"en11","n":"Gambas a la gabardina","p":10},{"id":"en12","n":"Patatas fritas","p":7},{"id":"en13","n":"Patatas bravas","p":8}]},{"id":"cven","label":"Carne en Vara","dest":"barbacoa","items":[{"id":"cv1","n":"Carne en Vara (1 Kg)","p":65},{"id":"cv2","n":"Carne en Vara (½ Kg)","p":32.5},{"id":"cv3","n":"Carne en Vara (¼ Kg)","p":16}]},{"id":"pescados","label":"Pescados a la Brasa","dest":"barbacoa","items":[{"id":"pe1","n":"Salmón","p":19},{"id":"pe2","n":"Dorado","p":14},{"id":"pe3","n":"Lubina","p":14}]},{"id":"principales","label":"Principales","dest":"cocina","items":[{"id":"pr1","n":"Cachopo de ternera","p":22},{"id":"pr2","n":"Cachopo de pollo","p":18},{"id":"pr3","n":"Cachopo de cerdo","p":18}]},{"id":"guarniciones","label":"Guarniciones","dest":"barbacoa","items":[{"id":"gu1","n":"Chorizo","p":6.5},{"id":"gu2","n":"Morcilla","p":6},{"id":"gu3","n":"Yuca sancochada (ración)","p":5}]},{"id":"fastfood","label":"Fast Food","dest":"cocina","items":[{"id":"ff1","n":"Mi Burger Clásica","p":10},{"id":"ff2","n":"Mi Burger BBQ","p":12},{"id":"ff3","n":"Mi Burger Doble Carne","p":14},{"id":"ff4","n":"Mi Burger El Melao","p":16},{"id":"ff5","n":"Pizza Margarita","p":11},{"id":"ff6","n":"Pizza Prosciutto","p":12},{"id":"ff7","n":"Pizza Diavola Dolce","p":13}]},{"id":"kids","label":"Kids","dest":"cocina","items":[{"id":"ki1","n":"Hamburguesa con queso y bacon","p":9},{"id":"ki2","n":"Fingers de pollo (6 uds)","p":8}]},{"id":"postres","label":"Postres","dest":"cocina","items":[{"id":"po1","n":"Helado de cono Deresa","p":3},{"id":"po2","n":"Torta Red Velvet","p":5},{"id":"po3","n":"Arroz con leche","p":3},{"id":"po4","n":"Flan de café","p":3},{"id":"po5","n":"Flan de queso","p":3}]}]};
+const MENU_DATA = {"restaurante":{"nombre":"El Melao de Inés","subtitulo":"restobar"},"categorias":[{"id":"bebidas","label":"Bebidas","dest":"barra1","items":[{"id":"bv1","n":"Copas de vino","p":3.50},{"id":"bv2","n":"Tinto de verano (copa)","p":4.00},{"id":"bv3","n":"Caña","p":2.20},{"id":"bv4","n":"Doble","p":3.20},{"id":"bv5","n":"Cerveza Tercio","p":3.20},{"id":"bv6","n":"Cerveza Corona","p":4.00},{"id":"bv7","n":"Cerveza Sin Gluten","p":3.50},{"id":"bv8","n":"Cerveza 0.0","p":3.20},{"id":"bv9","n":"Cerveza 0.0 Tostada","p":3.20},{"id":"bv10","n":"Refrescos (lata)","p":2.50},{"id":"bv11","n":"Agua pequeña","p":2.00},{"id":"bv12","n":"Agua grande","p":3.50},{"id":"bv13","n":"Café / Infusión","p":2.00},{"id":"bv14","n":"Papelón con limón (vaso)","p":3.50},{"id":"bv15","n":"Papelón con limón (jarra)","p":15.00}]},{"id":"entrantes","label":"Entrantes","dest":"cocina","items":[{"id":"en1","n":"Ensalada Mixta","p":12.00},{"id":"en2","n":"Ensalada César con pollo","p":12.50},{"id":"en3","n":"Vegetales a la Brasa","p":13.00},{"id":"en4","n":"Ensalada Rusa","p":11.00},{"id":"en5","n":"Ensalada Melao","p":12.00},{"id":"en6","n":"Alitas de Pollo (8 uds)","p":9.00},{"id":"en7","n":"Croquetas de jamón (8 uds)","p":10.00},{"id":"en8","n":"Calamares","p":12.00},{"id":"en9","n":"Samburiño","p":15.00},{"id":"en10","n":"Gambas al ajillo","p":12.00},{"id":"en11","n":"Gambas a la gabardina","p":10.00},{"id":"en12","n":"Patatas fritas","p":7.00},{"id":"en13","n":"Patatas bravas","p":8.00}]},{"id":"cven","label":"Carne en Vara","dest":"barbacoa","items":[{"id":"cv1","n":"Carne en Vara (1 Kg)","p":65.00},{"id":"cv2","n":"Carne en Vara (½ Kg)","p":32.50},{"id":"cv3","n":"Carne en Vara (¼ Kg)","p":16.00}]},{"id":"pescados","label":"Pescados a la Brasa","dest":"barbacoa","items":[{"id":"pe1","n":"Salmón","p":19.00},{"id":"pe2","n":"Dorado","p":14.00},{"id":"pe3","n":"Lubina","p":14.00}]},{"id":"principales","label":"Principales","dest":"cocina","items":[{"id":"pr1","n":"Cachopo de ternera","p":22.00},{"id":"pr2","n":"Cachopo de pollo","p":18.00},{"id":"pr3","n":"Cachopo de cerdo","p":18.00}]},{"id":"guarniciones","label":"Guarniciones","dest":"barbacoa","items":[{"id":"gu1","n":"Chorizo","p":6.50},{"id":"gu2","n":"Morcilla","p":6.00},{"id":"gu3","n":"Yuca sancochada (ración)","p":5.00}]},{"id":"fastfood","label":"Fast Food","dest":"cocina","items":[{"id":"ff1","n":"Mi Burger Clásica","p":10.00},{"id":"ff2","n":"Mi Burger BBQ","p":12.00},{"id":"ff3","n":"Mi Burger Doble Carne","p":14.00},{"id":"ff4","n":"Mi Burger El Melao","p":16.00},{"id":"ff5","n":"Pizza Margarita","p":11.00},{"id":"ff6","n":"Pizza Prosciutto","p":12.00},{"id":"ff7","n":"Pizza Diavola Dolce","p":13.00}]},{"id":"kids","label":"Kids","dest":"cocina","items":[{"id":"ki1","n":"Hamburguesa con queso y bacon","p":9.00},{"id":"ki2","n":"Fingers de pollo (6 uds)","p":8.00}]},{"id":"postres","label":"Postres","dest":"cocina","items":[{"id":"po1","n":"Helado de cono Deresa","p":3.00},{"id":"po2","n":"Torta Red Velvet","p":5.00},{"id":"po3","n":"Arroz con leche","p":3.00},{"id":"po4","n":"Flan de café","p":3.00},{"id":"po5","n":"Flan de queso","p":3.00}]}]};
 
 async function boot(){
   let data=MENU_DATA;
@@ -365,9 +365,8 @@ function renderControl(){
   if(!keys.length){el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#555">Sin pedidos</div>';return;}
   el.innerHTML=keys.map(k=>{
     const o=cajaOrders[k];
-    const sub=o.total||0;const iva=sub*0.10;const tot=sub*1.10;
+    const tot=o.total||0;
     return `<div class="xcard"><div class="xh">${o.label} ${o.camarero?'· 👤 '+o.camarero:''}</div>${o.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${eur(x.p*x.q)}</span></div>`).join('')}
-<div style="margin-top:8px;padding:8px;background:#111;border-radius:8px"><div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>Subtotal (sin IVA)</span><span>${eur(sub)}</span></div><div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>IVA 10%</span><span>${eur(iva)}</span></div></div>
 <div class="xtot"><span>TOTAL acumulado</span><span>${eur(tot)}</span></div>
 <button style="width:100%;margin-top:8px;padding:10px;border-radius:10px;border:1.5px solid #00CFFF;background:transparent;color:#00CFFF;font-weight:800;font-size:13px;cursor:pointer" onclick="printTicket(cajaOrders['${k}'])">🖨️ Imprimir</button></div>`;
   }).join('');
@@ -377,14 +376,10 @@ function renderCash(){
   if(badge)badge.textContent=cajaCmds.length?` · ${cajaCmds.length}`:'';
   if(!cajaCmds.length){el.innerHTML='<div style="padding:40px 20px;text-align:center;color:#555">Sin cuentas</div>';return;}
   el.innerHTML=cajaCmds.map((c,i)=>{
-    const sub=c.total||0;const iva=sub*0.10;const tot=sub*1.10;
+    const tot=c.total||0;
     return `<div class="xcard">
       <div class="xh">🧾 ${c.label} ${c.camarero?'· 👤 '+c.camarero:''} <span style="font-size:12px;color:#888">${c.t}</span></div>
       ${c.items.map(x=>`<div class="xl"><span>${x.q}× ${x.n}</span><span style="color:#FFD700">${eur(x.p*x.q)}</span></div>`).join('')}
-      <div style="margin-top:8px;padding:8px;background:#111;border-radius:8px">
-        <div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>Subtotal (sin IVA)</span><span>${eur(sub)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>IVA 10%</span><span>${eur(iva)}</span></div>
-      </div>
       <div class="xtot"><span>TOTAL</span><span>${eur(tot)}</span></div>
       ${c.nota?`<div style="font-size:12px;color:#c2185b;margin-top:6px">⚠️ ${c.nota}</div>`:''}
       <div style="display:flex;gap:6px;margin-top:8px">
@@ -408,13 +403,11 @@ async function printTicket(data, isCopy){
     if(r.ok){const d=await r.json();ticketId=d.id;}
   }catch(e){}
   if(!ticketId)ticketId=new Date().getFullYear()+'-'+String(Math.floor(Math.random()*9999)).padStart(4,'0');
-  const subtotal=data.total||0;
-  const iva=subtotal*0.10;
-  const totalConIva=subtotal*1.10;
+  const total=data.total||0;
   try{
     const r=await fetch('http://localhost:3333/print',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({items:data.items,subtotal,iva,total:totalConIva,label:data.label,camarero:data.camarero,ticketId,isCopy:!!isCopy})
+      body:JSON.stringify({items:data.items,total,label:data.label,camarero:data.camarero,ticketId,isCopy:!!isCopy})
     });
     if(r.ok) toast('Impreso',data.label+' · Nº '+ticketId,'🖨️');
     else toast('Error','No se pudo imprimir','⚠️');
@@ -436,7 +429,6 @@ async function emailTicket(data){
     if(r.ok){const d=await r.json();ticketId=d.id;}
   }catch(e){}
   if(!ticketId)ticketId=new Date().getFullYear()+'-'+String(Math.floor(Math.random()*9999)).padStart(4,'0');
-  const base=total;const iva=base*0.10;const totalConIva=base*1.10;
   const ticketHtml=`<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:Arial,sans-serif;max-width:400px;margin:0 auto;padding:20px;color:#333">
 <div style="text-align:center;margin-bottom:16px">
 <div style="font-size:20px;font-weight:bold">EL MELAO DE INÉS</div>
@@ -458,10 +450,9 @@ ${data.camarero?'<div style="font-size:12px;color:#666">Camarer@: '+data.camarer
 ${items.map(x=>'<tr style="border-bottom:1px solid #eee"><td style="padding:4px 0">'+x.n+'</td><td style="text-align:center">'+x.q+'</td><td style="text-align:right">'+(x.p*x.q).toFixed(2)+' €</td></tr>').join('')}
 </table>
 <hr style="border:1px dashed #ccc">
-<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;margin:10px 0"><span>TOTAL</span><span>${Number(totalConIva).toFixed(2)} €</span></div>
+<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:bold;margin:10px 0"><span>TOTAL</span><span>${Number(total).toFixed(2)} €</span></div>
 <hr style="border:1px dashed #ccc">
-<div style="font-size:11px;color:#666;margin:6px 0"><div style="display:flex;justify-content:space-between"><span>Base imponible (10%)</span><span>${base.toFixed(2)} €</span></div>
-<div style="display:flex;justify-content:space-between"><span>IVA 10%</span><span>${iva.toFixed(2)} €</span></div></div>
+<div style="text-align:center;font-size:12px;color:#888;margin:6px 0">IVA incluido</div>
 <hr style="border:1px dashed #ccc">
 <div style="text-align:center;margin-top:12px;font-size:13px;color:#888">Gracias por su visita</div>
 <div style="text-align:center;font-size:11px;color:#aaa">elmelaodeines.com</div>
@@ -627,9 +618,8 @@ function confirmarSub(){
       <div style="font-size:17px;font-weight:800;margin-bottom:4px">${subLabel}</div>
       <div style="font-size:13px;color:#888;margin-bottom:12px">Enviada a caja</div>
       <div style="background:#111;border-radius:10px;padding:12px;text-align:left">
-        <div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>Subtotal (sin IVA)</span><span>${eur(subtotal)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;color:#aaa;padding:3px 0"><span>IVA 10%</span><span>${eur(subtotal*0.10)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:#FFD700;padding:6px 0 0"><span>TOTAL</span><span>${eur(subtotal*1.10)}</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:#FFD700;padding:6px 0"><span>TOTAL</span><span>${eur(subtotal)}</span></div>
+        <div style="font-size:12px;color:#888;text-align:center;padding:4px 0">IVA incluido</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
