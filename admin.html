@@ -90,6 +90,7 @@ button,input,select{font:inherit;color:inherit}
       <a class="tb-back" href="./links.html">←</a>
       <div class="tb-title">Admin · Menú</div>
     </div>
+    <button onclick="printPriceList()" style="padding:8px 14px;border-radius:10px;border:1.5px solid #c2185b;background:transparent;color:#c2185b;font-weight:800;font-size:13px;cursor:pointer">🖨️ Lista de precios</button>
     <div class="tb-badge">admin</div>
   </div>
   <div id="content">
@@ -323,6 +324,45 @@ function toast(msg){
   setTimeout(()=>el.classList.remove('show'),3000);
 }
 
+
+function printPriceList(){
+  if(!menu){toast('Cargando menú...');return;}
+  const fecha=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const sections=menu.categorias.map(cat=>`
+    <div class="cat-section">
+      <h2>${cat.label}</h2>
+      <table><tbody>
+        ${cat.items.map(it=>`<tr><td>${it.n}</td><td>${Number(it.p).toFixed(2)} €</td></tr>`).join('')}
+      </tbody></table>
+    </div>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Lista de Precios · El Melao de Inés</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:Arial,sans-serif;padding:24px;max-width:720px;margin:0 auto;color:#222}
+    h1{text-align:center;font-size:22px;margin-bottom:4px}
+    .sub{text-align:center;color:#888;font-size:12px;margin-bottom:6px}
+    .fecha{text-align:center;color:#aaa;font-size:11px;margin-bottom:24px}
+    .cat-section{margin-bottom:18px;page-break-inside:avoid}
+    h2{font-size:13px;font-weight:bold;text-transform:uppercase;letter-spacing:.06em;color:#c2185b;border-bottom:2px solid #c2185b;padding-bottom:3px;margin-bottom:6px}
+    table{width:100%;border-collapse:collapse}
+    tr:nth-child(even){background:#f7f7f7}
+    td{padding:4px 8px;font-size:13px}
+    td:last-child{text-align:right;font-weight:bold;white-space:nowrap;width:70px}
+    .footer{text-align:center;font-size:11px;color:#aaa;margin-top:24px;border-top:1px solid #eee;padding-top:10px}
+    @media print{body{padding:12px}.cat-section{page-break-inside:avoid}}
+  </style></head><body>
+  <h1>El Melao de Inés</h1>
+  <div class="sub">Lista de precios · IVA incluido</div>
+  <div class="fecha">${fecha}</div>
+  ${sections}
+  <div class="footer">elmelaodeines.com</div>
+  </body></html>`;
+  const win=window.open('','_blank','width=820,height=700');
+  if(!win){toast('Permite ventanas emergentes para imprimir');return;}
+  win.document.write(html);
+  win.document.close();
+  setTimeout(()=>{win.print();},400);
+}
 
 function tryLogin(){
   const u=document.getElementById('login-user').value.trim();
